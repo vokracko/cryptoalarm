@@ -41,14 +41,14 @@ class Cryptoalarm():
         self.notifier = Notifier(self.database)
 
     def shutdown(self, signum, frame):
-        logger.info("Shuting down")
+        logger.info('Shuting down')
         self.stop.set()
         for thread in self.threads:
             thread.join()
 
     def start(self):
         for coin in self.coins:
-            logger.info("{}: starting monitor".format(coin))
+            logger.info('{}: starting monitor'.format(coin))
             thread = threading.Thread(target=self.worker, args=(coin,))
             self.threads.append(thread)
             thread.start()
@@ -57,13 +57,13 @@ class Cryptoalarm():
         for coin in self.coins:
             last_hash = coin.get_best_block_hash()
             self.database.set_last_block_hash(coin, last_hash)
-            logger.info("{}: setting last_block_hash to {}".format(coin, last_hash))
+            logger.info('{}: setting last_block_hash to {}'.format(coin, last_hash))
 
     def process_block(self, coin, hash):
         tx_acc = 0
         not_acc = 0
         coin.get_block(hash)
-        logger.info("{}: processing block: height {}, hash {}".format(coin, coin.get_block_height(), hash))
+        logger.info('{}: processing block: height {}, hash {}'.format(coin, coin.get_block_height(), hash))
         cnt = 0
 
         for tx_hash in coin.get_block_transactions():
@@ -74,7 +74,7 @@ class Cryptoalarm():
             self.notifier.process_transaction(coin, tx)
             not_acc += timer() - not_start
             cnt += 1
-        logger.info("{}: txs processed: {}, tx time {}, not time {}".format(coin, cnt, tx_acc, not_acc))
+        logger.info('{}: txs processed: {}, tx time {}, not time {}'.format(coin, cnt, tx_acc, not_acc))
 
         return coin.get_parent_block_hash()
 
@@ -97,7 +97,7 @@ class Cryptoalarm():
             self.notifier.notify(coin)
             self.stop.wait(timeout=coin.block_time.total_seconds())
 
-        logger.info("{}: terminating".format(coin))
+        logger.info('{}: terminating'.format(coin))
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Crypto monitor')
