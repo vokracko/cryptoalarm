@@ -12,7 +12,10 @@ class Bitcoin(Coin):
         self.block = self.rpc('getblock', hash, True)
         return self.block
 
-    def get_block_height(self):
+    def get_block_height(self, hash = None):
+        if hash is not None:
+            self.get_block(hash)
+
         return int(self.block.get('height', 0))
 
     def get_parent_block_hash(self, hash = None):
@@ -32,9 +35,9 @@ class Bitcoin(Coin):
 
     def get_transaction_io(self, hash):
         tx = self.get_transaction(hash)
-        to = reduce(lambda acc, item: item['scriptPubKey'].get('addresses', []) + acc, tx['vout'], [])
-        from_ = reduce(lambda acc, item: self.process_inputs(item) + acc, tx['vin'], [])
-        return {'from': from_, 'to': to}
+        vout = reduce(lambda acc, item: item['scriptPubKey'].get('addresses', []) + acc, tx['vout'], [])
+        vin = reduce(lambda acc, item: self.process_inputs(item) + acc, tx['vin'], [])
+        return {'in': set(vin), 'out': set(vout), 'hash': hash}
 
     def process_inputs(self, input):
         if 'coinbase' in input:

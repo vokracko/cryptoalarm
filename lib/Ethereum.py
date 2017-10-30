@@ -31,4 +31,4 @@ class Ethereum(Coin):
 
     def get_transaction_io(self, hash):
         tx = self.get_transaction(hash)
-        return {'from': [tx['from']], 'to': [tx['to']]}
+        return {'in': set([tx['from']]), 'out': set([tx['to']]), 'hash': hash}
