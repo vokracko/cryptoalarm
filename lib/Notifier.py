@@ -64,9 +64,13 @@ class Notifier():
             addr_data['out'] = []
 
     def send(self, coin, user, addr, txs):
-        self.mailer.send(user, addr, txs)
-        self.rest.send(user, addr, txs)
         logger.info("Notifying: {}: user {} about {}".format(coin, user, txs))
+
+        if user['notify'] == 'email':
+            self.mailer.send(user, addr, txs)
+        elif user['notify'] == 'rest':
+            self.rest.send(user, addr, txs)
+
 
 class Sender():
     def send(self, user, addr, txs):
