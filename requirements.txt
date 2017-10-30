@@ -1,2 +1,2 @@
-PyMySQL==0.7.11
 requests==2.17.3
+psycopg2==2.7.3.2

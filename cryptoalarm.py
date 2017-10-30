@@ -37,7 +37,7 @@ class Cryptoalarm():
         eth = Ethereum('http://localhost:8545')
 
         self.coins = [btc, ltc, dash, zec, eth]
-        self.database = Database('localhost', 'root', '', 'dp')
+        self.database = Database('dbname=dp user=postgres')
         self.notifier = Notifier(self.database)
 
     def shutdown(self, signum, frame):
@@ -79,7 +79,7 @@ class Cryptoalarm():
         return coin.get_parent_block_hash()
 
     def worker(self, coin):
-        database = Database('localhost', 'root', '', 'dp')
+        database = Database('dbname=dp user=postgres')
 
         while not self.stop.is_set():
             last_hash = database.get_last_block_hash(coin)

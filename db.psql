@@ -1,0 +1,373 @@
+--
+-- PostgreSQL database dump
+--
+
+-- Dumped from database version 9.6.5
+-- Dumped by pg_dump version 9.6.5
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SET check_function_bodies = false;
+SET client_min_messages = warning;
+SET row_security = off;
+
+--
+-- Name: dp; Type: SCHEMA; Schema: -; Owner: postgres
+--
+
+CREATE SCHEMA dp;
+
+
+ALTER SCHEMA dp OWNER TO postgres;
+
+--
+-- Name: plpgsql; Type: EXTENSION; Schema: -; Owner: 
+--
+
+CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
+
+
+--
+-- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner: 
+--
+
+COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
+
+
+SET search_path = public, pg_catalog;
+
+--
+-- Name: watchlist_notify; Type: TYPE; Schema: public; Owner: postgres
+--
+
+CREATE TYPE watchlist_notify AS ENUM (
+    'email',
+    'rest'
+);
+
+
+ALTER TYPE watchlist_notify OWNER TO postgres;
+
+--
+-- Name: watchlist_type; Type: TYPE; Schema: public; Owner: postgres
+--
+
+CREATE TYPE watchlist_type AS ENUM (
+    'in',
+    'out',
+    'inout'
+);
+
+
+ALTER TYPE watchlist_type OWNER TO postgres;
+
+SET search_path = dp, pg_catalog;
+
+SET default_tablespace = '';
+
+SET default_with_oids = false;
+
+--
+-- Name: address; Type: TABLE; Schema: dp; Owner: postgres
+--
+
+CREATE TABLE address (
+    address_id bigint NOT NULL,
+    hash character varying(255) NOT NULL,
+    coin_id bigint NOT NULL
+);
+
+
+ALTER TABLE address OWNER TO postgres;
+
+--
+-- Name: address_address_id_seq; Type: SEQUENCE; Schema: dp; Owner: postgres
+--
+
+CREATE SEQUENCE address_address_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE address_address_id_seq OWNER TO postgres;
+
+--
+-- Name: address_address_id_seq; Type: SEQUENCE OWNED BY; Schema: dp; Owner: postgres
+--
+
+ALTER SEQUENCE address_address_id_seq OWNED BY address.address_id;
+
+
+--
+-- Name: coin; Type: TABLE; Schema: dp; Owner: postgres
+--
+
+CREATE TABLE coin (
+    coin_id bigint NOT NULL,
+    name character varying(20) NOT NULL,
+    last_block character varying(255)
+);
+
+
+ALTER TABLE coin OWNER TO postgres;
+
+--
+-- Name: coin_coin_id_seq; Type: SEQUENCE; Schema: dp; Owner: postgres
+--
+
+CREATE SEQUENCE coin_coin_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE coin_coin_id_seq OWNER TO postgres;
+
+--
+-- Name: coin_coin_id_seq; Type: SEQUENCE OWNED BY; Schema: dp; Owner: postgres
+--
+
+ALTER SEQUENCE coin_coin_id_seq OWNED BY coin.coin_id;
+
+
+--
+-- Name: user; Type: TABLE; Schema: dp; Owner: postgres
+--
+
+CREATE TABLE "user" (
+    user_id bigint NOT NULL,
+    email character varying(255) NOT NULL
+);
+
+
+ALTER TABLE "user" OWNER TO postgres;
+
+--
+-- Name: user_user_id_seq; Type: SEQUENCE; Schema: dp; Owner: postgres
+--
+
+CREATE SEQUENCE user_user_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE user_user_id_seq OWNER TO postgres;
+
+--
+-- Name: user_user_id_seq; Type: SEQUENCE OWNED BY; Schema: dp; Owner: postgres
+--
+
+ALTER SEQUENCE user_user_id_seq OWNED BY "user".user_id;
+
+
+--
+-- Name: watchlist; Type: TABLE; Schema: dp; Owner: postgres
+--
+
+CREATE TABLE watchlist (
+    watchlist_id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    address_id bigint NOT NULL,
+    type public.watchlist_type NOT NULL,
+    notify public.watchlist_notify NOT NULL
+);
+
+
+ALTER TABLE watchlist OWNER TO postgres;
+
+--
+-- Name: watchlist_watchlist_id_seq; Type: SEQUENCE; Schema: dp; Owner: postgres
+--
+
+CREATE SEQUENCE watchlist_watchlist_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE watchlist_watchlist_id_seq OWNER TO postgres;
+
+--
+-- Name: watchlist_watchlist_id_seq; Type: SEQUENCE OWNED BY; Schema: dp; Owner: postgres
+--
+
+ALTER SEQUENCE watchlist_watchlist_id_seq OWNED BY watchlist.watchlist_id;
+
+
+--
+-- Name: address address_id; Type: DEFAULT; Schema: dp; Owner: postgres
+--
+
+ALTER TABLE ONLY address ALTER COLUMN address_id SET DEFAULT nextval('address_address_id_seq'::regclass);
+
+
+--
+-- Name: coin coin_id; Type: DEFAULT; Schema: dp; Owner: postgres
+--
+
+ALTER TABLE ONLY coin ALTER COLUMN coin_id SET DEFAULT nextval('coin_coin_id_seq'::regclass);
+
+
+--
+-- Name: user user_id; Type: DEFAULT; Schema: dp; Owner: postgres
+--
+
+ALTER TABLE ONLY "user" ALTER COLUMN user_id SET DEFAULT nextval('user_user_id_seq'::regclass);
+
+
+--
+-- Name: watchlist watchlist_id; Type: DEFAULT; Schema: dp; Owner: postgres
+--
+
+ALTER TABLE ONLY watchlist ALTER COLUMN watchlist_id SET DEFAULT nextval('watchlist_watchlist_id_seq'::regclass);
+
+
+--
+-- Data for Name: address; Type: TABLE DATA; Schema: dp; Owner: postgres
+--
+
+COPY address (address_id, hash, coin_id) FROM stdin;
+1	0xfbb1b73c4f0bda4f67dca266ce6ef42f520fbb98	1
+2	1BWzUxcEBn9ZEfLxc3TCULfCN2snAQpgqL	2
+3	LhyLNfBkoKshT7R8Pce6vkB9T2cP2o84hx	4
+4	1KFHE7w8BhaENAswwryaoccDb6qcT6DbYY	3
+5	XxRB5fnF8KpB9jjRRb7M7pq4qtyL8xbUou	5
+6	t1KLGj3izuKveu1eFZUiwp3BEKHQAiYv2Z7	6
+\.
+
+
+--
+-- Name: address_address_id_seq; Type: SEQUENCE SET; Schema: dp; Owner: postgres
+--
+
+SELECT pg_catalog.setval('address_address_id_seq', 6, true);
+
+
+--
+-- Data for Name: coin; Type: TABLE DATA; Schema: dp; Owner: postgres
+--
+
+COPY coin (coin_id, name, last_block) FROM stdin;
+3	BitcoinCash	
+5	Dash	000000000000008d71cb434ee8b0daeb6b2519ffc35d2de9bb07a4283e3d212a
+2	Bitcoin	000000000000000000a42541bc4e1467669f7df32e0f059b459fec70240e9a62
+6	Zcash	000000000f5fdc3495c8bdb15da063cda8a20e67652ea38eddf435895e555fd1
+4	Litecoin	c2aa16f8df56d9cd792dd282dcce6385a30687bbf326898e832b2629413d877f
+1	Ethereum	0x89f4900ee2f58336da0a9be77bd63b780870aa8039ca95b7d5477d0126c91683
+\.
+
+
+--
+-- Name: coin_coin_id_seq; Type: SEQUENCE SET; Schema: dp; Owner: postgres
+--
+
+SELECT pg_catalog.setval('coin_coin_id_seq', 6, true);
+
+
+--
+-- Data for Name: user; Type: TABLE DATA; Schema: dp; Owner: postgres
+--
+
+COPY "user" (user_id, email) FROM stdin;
+1	ethereum@vokracko.cz
+2	litecoin@vokracko.cz
+\.
+
+
+--
+-- Name: user_user_id_seq; Type: SEQUENCE SET; Schema: dp; Owner: postgres
+--
+
+SELECT pg_catalog.setval('user_user_id_seq', 2, true);
+
+
+--
+-- Data for Name: watchlist; Type: TABLE DATA; Schema: dp; Owner: postgres
+--
+
+COPY watchlist (watchlist_id, user_id, address_id, type, notify) FROM stdin;
+1	1	1	inout	rest
+2	2	3	in	email
+\.
+
+
+--
+-- Name: watchlist_watchlist_id_seq; Type: SEQUENCE SET; Schema: dp; Owner: postgres
+--
+
+SELECT pg_catalog.setval('watchlist_watchlist_id_seq', 2, true);
+
+
+--
+-- Name: address idx_237971_primary; Type: CONSTRAINT; Schema: dp; Owner: postgres
+--
+
+ALTER TABLE ONLY address
+    ADD CONSTRAINT idx_237971_primary PRIMARY KEY (address_id);
+
+
+--
+-- Name: coin idx_237977_primary; Type: CONSTRAINT; Schema: dp; Owner: postgres
+--
+
+ALTER TABLE ONLY coin
+    ADD CONSTRAINT idx_237977_primary PRIMARY KEY (coin_id);
+
+
+--
+-- Name: user idx_237983_primary; Type: CONSTRAINT; Schema: dp; Owner: postgres
+--
+
+ALTER TABLE ONLY "user"
+    ADD CONSTRAINT idx_237983_primary PRIMARY KEY (user_id);
+
+
+--
+-- Name: watchlist idx_237989_primary; Type: CONSTRAINT; Schema: dp; Owner: postgres
+--
+
+ALTER TABLE ONLY watchlist
+    ADD CONSTRAINT idx_237989_primary PRIMARY KEY (watchlist_id);
+
+
+--
+-- Name: address address_coin_fk; Type: FK CONSTRAINT; Schema: dp; Owner: postgres
+--
+
+ALTER TABLE ONLY address
+    ADD CONSTRAINT address_coin_fk FOREIGN KEY (coin_id) REFERENCES coin(coin_id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: watchlist watchlist_address_fk; Type: FK CONSTRAINT; Schema: dp; Owner: postgres
+--
+
+ALTER TABLE ONLY watchlist
+    ADD CONSTRAINT watchlist_address_fk FOREIGN KEY (address_id) REFERENCES address(address_id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: watchlist watchlist_user_fk; Type: FK CONSTRAINT; Schema: dp; Owner: postgres
+--
+
+ALTER TABLE ONLY watchlist
+    ADD CONSTRAINT watchlist_user_fk FOREIGN KEY (user_id) REFERENCES "user"(user_id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- PostgreSQL database dump complete
+--
+

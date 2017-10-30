@@ -1,41 +1,34 @@
-import pymysql
+import psycopg2
+import psycopg2.extras
 import logging
 
 class Database():
     conn = None
+    cursor = None
 
-    def __init__(self, host, user, password, db):
-        self.conn = pymysql.connect(host=host,
-                                    user=user,
-                                    password=password,
-                                    db=db,
-                                    charset='utf8mb4',
-                                    cursorclass=pymysql.cursors.DictCursor)
+    def __init__(self, url):
+        self.conn = psycopg2.connect(url)
+        self.cursor = self.conn.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
 
     def get_addresses(self):
-        with self.conn.cursor() as cursor:
-            sql = 'SELECT a.address_id, a.hash, c.name coin FROM `address` a NATURAL JOIN coin c'
-            cursor.execute(sql)
-            return cursor.fetchall()
+        sql = 'SELECT a.address_id "address_id", a.hash "hash", c.name "coin" FROM dp.address a NATURAL JOIN dp.coin c'
+        self.cursor.execute(sql)
+        return self.cursor.fetchall()
 
     def get_address_users(self, id, type):
-        with self.conn.cursor() as cursor:
-            sql = 'SELECT w.type type, w.notify, u.user_id user_id, u.email email, notify FROM watchlist w NATURAL JOIN user u WHERE w.address_id = %s AND w.type = %s'
-            cursor.execute(sql, (id, type))
-            return cursor.fetchall()
+        sql = 'SELECT w.type "type", w.notify "notify", u.user_id "user_id", u.email "email" FROM dp.watchlist w NATURAL JOIN dp.user u WHERE w.address_id = %s AND w.type = %s'
+        self.cursor.execute(sql, (id, type))
+        return self.cursor.fetchall()
 
     def get_last_block_hash(self, coin):
-        with self.conn.cursor() as cursor:
-            sql = 'SELECT last_block FROM coin WHERE name = %s'
-            cursor.execute(sql, (str(coin),))
-            result = cursor.fetchone()
+        sql = 'SELECT last_block FROM dp.coin WHERE name = %s'
+        self.cursor.execute(sql, (str(coin),))
+        result = self.cursor.fetchone()
 
-            return result['last_block']
+        return result['last_block']
 
     def set_last_block_hash(self, coin, hash):
-        with self.conn.cursor() as cursor:
-            sql = 'UPDATE coin SET last_block = %s  WHERE name = %s'
-            cursor.execute(sql, (hash, str(coin),))
-
+        sql = 'UPDATE dp.coin SET last_block = %s  WHERE name = %s'
+        self.cursor.execute(sql, (hash, str(coin),))
         self.conn.commit()
         
