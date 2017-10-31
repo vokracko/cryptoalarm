@@ -8,12 +8,7 @@ import signal
 import logging
 from timeit import default_timer as timer
 
-from lib.Bitcoin import Bitcoin
-# from lib.BitcoinCash import BitcoinCash
-from lib.Litecoin import Litecoin
-from lib.Dash import Dash
-from lib.Zcash import Zcash
-from lib.Ethereum import Ethereum
+from lib.Coin import Bitcoin, BitcoinCash, Dash, Zcash, Litecoin, Ethereum
 from lib.Database import Database
 from lib.Notifier import Notifier
 
