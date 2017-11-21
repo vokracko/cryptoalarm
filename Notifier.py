@@ -2,10 +2,9 @@ import logging
 import smtplib
 import requests
 from email.mime.text import MIMEText
+from config import logger
+import config as cfg
 
-
-
-logger = logging.getLogger('cryptoalarm')
 
 class Notifier():
     data = {}
@@ -80,26 +79,25 @@ class Mailer(Sender):
     server = None
 
     def connect(self):
-        self.server = smtplib.SMTP('mailtrap.io', 2525)
+        self.server = smtplib.SMTP(cfg.SMTP['server'], cfg.SMTP['port'])
         self.server.starttls()
-        self.server.login('d673e05d055dc4', '6bf26fc7b40fe4')
+        self.server.login(cfg.SMTP['username'], cfg.SMTP['password'])
 
     def build_message(self, user, addr, txs):
         return "{} with name {} found in those transactions:\n{}".format(addr, user['name'], '\n'.join(txs))
 
     def send(self, user, addr, txs):
         msg = MIMEText(self.build_message(user, addr, txs))
-        msg['Subject'] = 'Cryptoalarm notify'
-        msg['From'] = 'cryptoalarm@example.com'
+        msg['Subject'] = cfg.MAIL['subject']
+        msg['From'] = cfg.MAIL['from']
         msg['To'] = user['email']
 
         self.connect()
-        self.server.sendmail('cryptoalarm@example.com', [user['email']], msg.as_string())
+        self.server.sendmail(cfg.MAIL['from'], [user['email']], msg.as_string())
         self.server.quit()
 
 class Rest(Sender):
     headers = {'content-type': 'application/json'}
-    url = 'https://requestb.in/v7xfw2v7'
 
     def build_message(self, user, addr, txs):
         return {
@@ -110,5 +108,5 @@ class Rest(Sender):
 
     def send(self, user, addr, txs):
         payload = self.build_message(user, addr, txs)
-        requests.post(self.url, json=payload, headers=self.headers)
+        requests.post(cfg.REST_URL, json=payload, headers=self.headers)
 

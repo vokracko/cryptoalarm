@@ -1,6 +1,6 @@
 import psycopg2
 import psycopg2.extras
-import logging
+
 
 class Database():
     conn = None

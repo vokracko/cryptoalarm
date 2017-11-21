@@ -255,12 +255,12 @@ COPY address (address_id, hash, coin_id) FROM stdin;
 --
 
 COPY coin (coin_id, name, last_block) FROM stdin;
-3	BitcoinCash	0
-4	Litecoin	1317267
-6	Zcash	223524
-5	Dash	774504
-2	Bitcoin	495415
-1	Ethereum	4595349
+1	ETH	4595349
+3	BCH	0
+6	ZEC	223676
+2	BTC	495415
+4	LTC	1317271
+5	DASH	774511
 \.
 
 

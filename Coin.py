@@ -2,6 +2,7 @@ import requests
 import json
 from functools import reduce
 from datetime import timedelta
+import config as cfg
 
 
 class Coin():
@@ -43,7 +44,7 @@ class Coin():
         }
 
         # print(json.dumps(payload))
-        response = requests.post(self.url, json=payload, headers=headers)
+        response = requests.post(self.url, json=payload, headers=headers, timeout=(cfg.TIMEOUT['connect'], cfg.TIMEOUT['read']))
         # TODO error handling
         # print(response.json())
         return response.json()['result']
@@ -55,7 +56,7 @@ class Coin():
         return self.__class__.__name__
 
 
-class Bitcoin(Coin):
+class BTC(Coin):
     block_time = timedelta(minutes=15)
 
     def get_last_block_number(self):
@@ -91,19 +92,19 @@ class Bitcoin(Coin):
         return tx['vout'][index]['scriptPubKey'].get('addresses', [])
 
 
-class BitcoinCash(Bitcoin):
+class BCH(BTC):
     block_time = timedelta(seconds=10)
 
 
-class Dash(Bitcoin):
+class DASH(BTC):
     block_time = timedelta(seconds=150)
 
 
-class Litecoin(Bitcoin):
+class LTC(BTC):
     block_time = timedelta(seconds=150)
 
 
-class Zcash(Bitcoin):
+class ZEC(BTC):
     block_time = timedelta(seconds=150)
 
     def process_inputs(self, input):
@@ -112,7 +113,7 @@ class Zcash(Bitcoin):
         return [input.get('address')]
 
 
-class Ethereum(Coin):
+class ETH(Coin):
     block_time = timedelta(seconds=15)
 
     def get_last_block_number(self):
