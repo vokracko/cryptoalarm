@@ -50,44 +50,39 @@ class Cryptoalarm():
 
     def set_last_blocks(self):
         for coin in self.coins:
-            last_hash = coin.get_best_block_hash()
-            self.database.set_last_block_hash(coin, last_hash)
-            logger.info('{}: setting last_block_hash to {}'.format(coin, last_hash))
+            number = coin.get_last_block_number()
+            self.database.set_last_block_number(coin, number)
+            logger.info('{}: setting last_block_number to {}'.format(coin, number))
 
-    def process_block(self, coin, hash):
+    def process_block(self, coin, number):
         tx_acc = 0
-        not_acc = 0
-        coin.get_block(hash)
-        logger.info('{}: processing block: height {}, hash {}'.format(coin, coin.get_block_height(), hash))
+        coin.get_block(number)
+        logger.info('{}: processing block: {}'.format(coin, number))
         cnt = 0
 
         for tx_hash in coin.get_block_transactions():
             tx_start = timer()
             tx = coin.get_transaction_io(tx_hash)
             tx_acc += timer() - tx_start
-            not_start = timer()
             self.notifier.process_transaction(coin, tx)
-            not_acc += timer() - not_start
             cnt += 1
-        logger.info('{}: txs processed: {}, tx time {}, not time {}'.format(coin, cnt, tx_acc, not_acc))
+        logger.info('{}: txs processed: {}, tx time {}'.format(coin, cnt, tx_acc))
 
-        return coin.get_parent_block_hash()
+        return number + 1
 
     def worker(self, coin):
         database = Database('dbname=dp user=postgres')
 
         while not self.stop.is_set():
-            last_hash = database.get_last_block_hash(coin)
-            current_hash = coin.get_best_block_hash()
-            database.set_last_block_hash(coin, current_hash)
+            current_number = database.get_last_block_number(coin)
+            last_number = coin.get_last_block_number()
 
-            while current_hash != last_hash:
-                # TODO jak řešit kill
-                # pokud se to přeruší tady nezpracují se všechny bloky
-                # pokud se to nepřeruší tak může to může běžet ještě dlouho po killu
+            while current_number < last_number:
                 if self.stop.is_set():
                     break
-                current_hash = self.process_block(coin, current_hash)
+
+                database.set_last_block_number(coin, current_number)
+                current_number = self.process_block(coin, current_number)
 
             self.notifier.notify(coin)
             self.stop.wait(timeout=coin.block_time.total_seconds())

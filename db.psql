@@ -3,7 +3,7 @@
 --
 
 -- Dumped from database version 9.6.5
--- Dumped by pg_dump version 9.6.5
+-- Dumped by pg_dump version 10.1
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -111,7 +111,7 @@ ALTER SEQUENCE address_address_id_seq OWNED BY address.address_id;
 CREATE TABLE coin (
     coin_id bigint NOT NULL,
     name character varying(20) NOT NULL,
-    last_block character varying(255)
+    last_block integer
 );
 
 
@@ -250,31 +250,17 @@ COPY address (address_id, hash, coin_id) FROM stdin;
 
 
 --
--- Name: address_address_id_seq; Type: SEQUENCE SET; Schema: dp; Owner: postgres
---
-
-SELECT pg_catalog.setval('address_address_id_seq', 6, true);
-
-
---
 -- Data for Name: coin; Type: TABLE DATA; Schema: dp; Owner: postgres
 --
 
 COPY coin (coin_id, name, last_block) FROM stdin;
-3	BitcoinCash	
-5	Dash	000000000000008d71cb434ee8b0daeb6b2519ffc35d2de9bb07a4283e3d212a
-2	Bitcoin	000000000000000000a42541bc4e1467669f7df32e0f059b459fec70240e9a62
-6	Zcash	000000000f5fdc3495c8bdb15da063cda8a20e67652ea38eddf435895e555fd1
-4	Litecoin	c2aa16f8df56d9cd792dd282dcce6385a30687bbf326898e832b2629413d877f
-1	Ethereum	0x89f4900ee2f58336da0a9be77bd63b780870aa8039ca95b7d5477d0126c91683
+3	BitcoinCash	0
+1	Ethereum	0
+6	Zcash	0
+5	Dash	0
+4	Litecoin	0
+2	Bitcoin	0
 \.
-
-
---
--- Name: coin_coin_id_seq; Type: SEQUENCE SET; Schema: dp; Owner: postgres
---
-
-SELECT pg_catalog.setval('coin_coin_id_seq', 6, true);
 
 
 --
@@ -288,13 +274,6 @@ COPY "user" (user_id, email) FROM stdin;
 
 
 --
--- Name: user_user_id_seq; Type: SEQUENCE SET; Schema: dp; Owner: postgres
---
-
-SELECT pg_catalog.setval('user_user_id_seq', 2, true);
-
-
---
 -- Data for Name: watchlist; Type: TABLE DATA; Schema: dp; Owner: postgres
 --
 
@@ -302,6 +281,27 @@ COPY watchlist (watchlist_id, user_id, address_id, type, notify) FROM stdin;
 1	1	1	inout	rest
 2	2	3	in	email
 \.
+
+
+--
+-- Name: address_address_id_seq; Type: SEQUENCE SET; Schema: dp; Owner: postgres
+--
+
+SELECT pg_catalog.setval('address_address_id_seq', 6, true);
+
+
+--
+-- Name: coin_coin_id_seq; Type: SEQUENCE SET; Schema: dp; Owner: postgres
+--
+
+SELECT pg_catalog.setval('coin_coin_id_seq', 6, true);
+
+
+--
+-- Name: user_user_id_seq; Type: SEQUENCE SET; Schema: dp; Owner: postgres
+--
+
+SELECT pg_catalog.setval('user_user_id_seq', 2, true);
 
 
 --

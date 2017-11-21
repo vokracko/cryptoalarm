@@ -18,19 +18,13 @@ class Coin():
         
         return self.block_time
 
-    def get_best_block_hash(self):
+    def get_last_block_number(self):
         raise NotImplementedError()
 
-    def get_block(self, hash):
+    def get_block(self, number):
         raise NotImplementedError()
 
-    def get_block_height(self):
-        raise NotImplementedError()
-
-    def get_parent_block_hash(self, hash = None):
-        raise NotImplementedError()
-
-    def get_block_transactions(self, hash):
+    def get_block_transactions(self, number):
         raise NotImplementedError()
 
     def get_transaction(self, hash):
@@ -64,28 +58,17 @@ class Coin():
 class Bitcoin(Coin):
     block_time = timedelta(minutes=15)
 
-    def get_best_block_hash(self):
-        return self.rpc('getbestblockhash')
+    def get_last_block_number(self):
+        return self.rpc('getblockcount')
 
-    def get_block(self, hash):
+    def get_block(self, number):
+        hash = self.rpc('getblockhash', number)
         self.block = self.rpc('getblock', hash, True)
         return self.block
 
-    def get_block_height(self, hash = None):
-        if hash is not None:
-            self.get_block(hash)
-
-        return int(self.block.get('height', 0))
-
-    def get_parent_block_hash(self, hash = None):
-        if hash is not None:
-            self.get_block(hash)
-
-        return self.block['previousblockhash']
-
-    def get_block_transactions(self, hash = None):
-        if hash is not None:
-            self.get_block(hash)
+    def get_block_transactions(self, number = None):
+        if number is not None:
+            self.get_block(number)
 
         return self.block['tx']
 
@@ -132,25 +115,16 @@ class Zcash(Bitcoin):
 class Ethereum(Coin):
     block_time = timedelta(seconds=15)
 
-    def get_best_block_hash(self):
-        return self.rpc('eth_getBlockByNumber', 'latest', False)['hash']
+    def get_last_block_number(self):
+        return int(self.rpc('eth_getBlockByNumber', 'latest', False)['number'], 16)
 
-    def get_block(self, hash):
-        self.block = self.rpc('eth_getBlockByHash', hash, False)
+    def get_block(self, number):
+        self.block = self.rpc('eth_getBlockByNumber', hex(number), False)
         return self.block
 
-    def get_block_height(self):
-        return int(self.block.get('number', 0), 16)
-    
-    def get_parent_block_hash(self, hash = None):
-        if hash is not None:
-            self.get_block(hash)
-
-        return self.block['parentHash']
-
-    def get_block_transactions(self, hash = None):
-        if hash is not None:
-            self.get_block(hash)
+    def get_block_transactions(self, number = None):
+        if number is not None:
+            self.get_block(number)
 
         return self.block['transactions']
 

@@ -20,15 +20,15 @@ class Database():
         self.cursor.execute(sql, (id, type))
         return self.cursor.fetchall()
 
-    def get_last_block_hash(self, coin):
+    def get_last_block_number(self, coin):
         sql = 'SELECT last_block FROM dp.coin WHERE name = %s'
         self.cursor.execute(sql, (str(coin),))
         result = self.cursor.fetchone()
 
         return result['last_block']
 
-    def set_last_block_hash(self, coin, hash):
+    def set_last_block_number(self, coin, number):
         sql = 'UPDATE dp.coin SET last_block = %s  WHERE name = %s'
-        self.cursor.execute(sql, (hash, str(coin),))
+        self.cursor.execute(sql, (number, str(coin),))
         self.conn.commit()
         
