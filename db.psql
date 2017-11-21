@@ -180,7 +180,8 @@ CREATE TABLE watchlist (
     user_id bigint NOT NULL,
     address_id bigint NOT NULL,
     type public.watchlist_type NOT NULL,
-    notify public.watchlist_notify NOT NULL
+    notify public.watchlist_notify NOT NULL,
+    name character varying(255)
 );
 
 
@@ -255,11 +256,11 @@ COPY address (address_id, hash, coin_id) FROM stdin;
 
 COPY coin (coin_id, name, last_block) FROM stdin;
 3	BitcoinCash	0
-1	Ethereum	0
-6	Zcash	0
-5	Dash	0
-4	Litecoin	0
-2	Bitcoin	0
+4	Litecoin	1317267
+6	Zcash	223524
+5	Dash	774504
+2	Bitcoin	495415
+1	Ethereum	4595349
 \.
 
 
@@ -277,9 +278,9 @@ COPY "user" (user_id, email) FROM stdin;
 -- Data for Name: watchlist; Type: TABLE DATA; Schema: dp; Owner: postgres
 --
 
-COPY watchlist (watchlist_id, user_id, address_id, type, notify) FROM stdin;
-1	1	1	inout	rest
-2	2	3	in	email
+COPY watchlist (watchlist_id, user_id, address_id, type, notify, name) FROM stdin;
+2	2	3	in	email	Adresa sledovaná mailem
+1	1	1	inout	email	rest_addr
 \.
 
 

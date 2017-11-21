@@ -84,11 +84,11 @@ class Mailer(Sender):
         self.server.starttls()
         self.server.login('d673e05d055dc4', '6bf26fc7b40fe4')
 
-    def build_message(self, addr, txs):
-        return "{} found in those transactions:\n{}".format(addr, '\n'.join(txs))
+    def build_message(self, user, addr, txs):
+        return "{} with name {} found in those transactions:\n{}".format(addr, user['name'], '\n'.join(txs))
 
     def send(self, user, addr, txs):
-        msg = MIMEText(self.build_message(addr, txs))
+        msg = MIMEText(self.build_message(user, addr, txs))
         msg['Subject'] = 'Cryptoalarm notify'
         msg['From'] = 'cryptoalarm@example.com'
         msg['To'] = user['email']
