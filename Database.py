@@ -17,9 +17,9 @@ class Database():
                 a.hash "hash", 
                 c.name "coin" 
             FROM 
-                dp.address a 
+                address a 
             NATURAL JOIN 
-                dp.coin c
+                coin c
         '''
         self.cursor.execute(sql)
         return self.cursor.fetchall()
@@ -31,11 +31,13 @@ class Database():
                 w.name "name", 
                 w.notify "notify", 
                 u.user_id "user_id", 
-                u.email "email" 
+                u.email "email",
+                u.email_template "template"
             FROM 
-                dp.watchlist w 
-            NATURAL JOIN 
-                dp.user u 
+                watchlist w 
+            JOIN 
+                users u
+            ON u.user_id = w.user_id
             WHERE w.address_id = %s AND w.type = %s
         '''
         self.cursor.execute(sql, (id, type))
@@ -46,7 +48,7 @@ class Database():
             SELECT 
                 last_block 
             FROM 
-                dp.coin 
+                coin 
             WHERE 
                 name = %s
         '''
@@ -58,7 +60,7 @@ class Database():
     def set_last_block_number(self, coin, number):
         sql = '''
             UPDATE 
-                dp.coin 
+                coin 
             SET 
                 last_block = %s  
             WHERE 

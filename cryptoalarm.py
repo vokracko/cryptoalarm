@@ -18,13 +18,14 @@ class Cryptoalarm():
     stop = threading.Event()
     coins = []
     threads = []
+    database = None
     notifier = None
 
     def __init__(self):
         signal.signal(signal.SIGINT, self.shutdown)
 
-        for coin_name, url in cfg.COINS.items():
-            coin_inst = globals()[coin_name](url)
+        for coin_name, dct in cfg.COINS.items():
+            coin_inst = globals()[coin_name](dct['rpc'])
             self.coins.append(coin_inst)
 
         self.database = Database(cfg.DATABASE)
@@ -42,6 +43,10 @@ class Cryptoalarm():
             thread = threading.Thread(target=self.worker, args=(coin,))
             self.threads.append(thread)
             thread.start()
+        
+        thread = threading.Thread(target=self.notifier.worker, args=(self.stop,))
+        self.threads.append(thread)
+        thread.start()
 
     def set_last_blocks(self):
         for coin in self.coins:
@@ -57,7 +62,7 @@ class Cryptoalarm():
 
         for tx_hash in coin.get_block_transactions():
             tx = coin.get_transaction_io(tx_hash)
-            self.notifier.process_transaction(coin, tx)
+            self.notifier.add_transaction(coin, tx)
             cnt += 1
 
         time_total = timer() - time_start
@@ -81,8 +86,8 @@ class Cryptoalarm():
                 current_number, block_time = self.process_block(coin, current_number)
                 processing_time += block_time
 
-            self.notifier.notify(coin)
-            self.stop.wait(timeout=coin.block_time.total_seconds() - timedelta(seconds=processing_time))
+            until_next_block = (coin.block_time - timedelta(seconds=processing_time)).total_seconds()
+            self.stop.wait(timeout=until_next_block)
 
         logger.info('%s: terminating', coin)
 

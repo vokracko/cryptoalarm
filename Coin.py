@@ -93,7 +93,7 @@ class BTC(Coin):
 
 
 class BCH(BTC):
-    block_time = timedelta(seconds=10)
+    block_time = timedelta(minutes=10)
 
 
 class DASH(BTC):

@@ -144,7 +144,8 @@ ALTER SEQUENCE coin_coin_id_seq OWNED BY coin.coin_id;
 
 CREATE TABLE "user" (
     user_id bigint NOT NULL,
-    email character varying(255) NOT NULL
+    email character varying(255) NOT NULL,
+    email_template text
 );
 
 
@@ -245,8 +246,8 @@ COPY address (address_id, hash, coin_id) FROM stdin;
 2	1BWzUxcEBn9ZEfLxc3TCULfCN2snAQpgqL	2
 3	LhyLNfBkoKshT7R8Pce6vkB9T2cP2o84hx	4
 4	1KFHE7w8BhaENAswwryaoccDb6qcT6DbYY	3
-5	XxRB5fnF8KpB9jjRRb7M7pq4qtyL8xbUou	5
 6	t1KLGj3izuKveu1eFZUiwp3BEKHQAiYv2Z7	6
+5	XpESxaUmonkq8RaLLp46Brx2K39ggQe226	5
 \.
 
 
@@ -255,12 +256,12 @@ COPY address (address_id, hash, coin_id) FROM stdin;
 --
 
 COPY coin (coin_id, name, last_block) FROM stdin;
+6	ZEC	224115
+4	LTC	1317496
+5	DASH	774952
+2	BTC	495417
 1	ETH	4595349
 3	BCH	0
-6	ZEC	223676
-2	BTC	495415
-4	LTC	1317271
-5	DASH	774511
 \.
 
 
@@ -268,9 +269,10 @@ COPY coin (coin_id, name, last_block) FROM stdin;
 -- Data for Name: user; Type: TABLE DATA; Schema: dp; Owner: postgres
 --
 
-COPY "user" (user_id, email) FROM stdin;
-1	ethereum@vokracko.cz
-2	litecoin@vokracko.cz
+COPY "user" (user_id, email, email_template) FROM stdin;
+1	ethereum@vokracko.cz	\N
+2	litecoin@vokracko.cz	\N
+3	dash@vokracko.cz	dash custom template {txs}
 \.
 
 
@@ -279,8 +281,9 @@ COPY "user" (user_id, email) FROM stdin;
 --
 
 COPY watchlist (watchlist_id, user_id, address_id, type, notify, name) FROM stdin;
-2	2	3	in	email	Adresa sledovaná mailem
-1	1	1	inout	email	rest_addr
+1	1	1	inout	rest	
+2	2	3	in	email	Bitfinex
+3	3	5	inout	email	dash name
 \.
 
 
@@ -302,14 +305,14 @@ SELECT pg_catalog.setval('coin_coin_id_seq', 6, true);
 -- Name: user_user_id_seq; Type: SEQUENCE SET; Schema: dp; Owner: postgres
 --
 
-SELECT pg_catalog.setval('user_user_id_seq', 2, true);
+SELECT pg_catalog.setval('user_user_id_seq', 3, true);
 
 
 --
 -- Name: watchlist_watchlist_id_seq; Type: SEQUENCE SET; Schema: dp; Owner: postgres
 --
 
-SELECT pg_catalog.setval('watchlist_watchlist_id_seq', 2, true);
+SELECT pg_catalog.setval('watchlist_watchlist_id_seq', 3, true);
 
 
 --

@@ -2,7 +2,7 @@ import logging
 import logging.config
 from datetime import timedelta
 
-DATABASE = 'dbname=dp user=postgres'
+DATABASE = 'dbname=cryptoalarm user=postgres'
 REST_URL = 'http://localhost/endpoint'
 
 COINS = {
@@ -42,12 +42,14 @@ SMTP = {
 MAIL = {
     'from': 'cryptoalarm@example.com',
     'subject': 'Cryptoalarm notify',
-    'template': 'Monitorovaná adresa {coin} {name} {address} byla nalezena v těchto transakcích:\n{txs}',
+    'template': 'Monitorovaná adresa {name} {address} pro {coin} byla nalezena v těchto transakcích:\n{txs}',
 }
 
+NOTIFY_INTERVAL = timedelta(minutes=1)
+
 TIMEOUT = { # in seconds
-    'connect': 1,
-    'read': 10,
+    'connect': 2,
+    'read': 20,
 }
 
 LOGGER = {
