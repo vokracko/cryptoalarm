@@ -24,8 +24,8 @@ class Cryptoalarm():
     def __init__(self):
         signal.signal(signal.SIGINT, self.shutdown)
 
-        for coin_name, dct in cfg.COINS.items():
-            coin_inst = globals()[coin_name](dct['rpc'])
+        for coin_name, rpc in cfg.COINS.items():
+            coin_inst = globals()[coin_name](rpc)
             self.coins.append(coin_inst)
 
         self.database = Database(cfg.DATABASE)
