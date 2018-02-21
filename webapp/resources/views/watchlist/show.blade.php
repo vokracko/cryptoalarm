@@ -12,7 +12,7 @@
     
     <br>
     Coin: {{ $item->address->coin->name }}<br>
-    Address: {{ $item->address->hash }}<br>
+    Address: <a href="{{ $item->address->coin->explorer_url . $item->address->hash }}">{{ $item->address->hash }}</a><br>
     Type: {{ App\Watchlist::getKeyedEnum('types', $item->type) }}<br>
     Email template: <br>
     <pre>

@@ -24,7 +24,7 @@
                     <td>{{ $loop->iteration + $skipped }}</td>
                     <td>{{ $item->name }}</td>
                     <td>{{ $item->address->coin->name }}</td>
-                    <td>{{ $item->address->hash }}</td>
+                    <td><a href="{{ $item->address->coin->explorer_url . $item->address->hash }}">{{ $item->address->hash }}</a></td>
                     <td>{{ $item->type }}</td>
                     <td><a href="{{ action('WatchlistController@show', $item->id) }}" class="btn btn-primary">Detail</a></td>
                     <td><a href="{{ action('WatchlistController@edit', $item->id) }}" class="btn btn-primary">Edit</a></td>
