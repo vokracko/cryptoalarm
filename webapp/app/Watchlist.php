@@ -10,7 +10,7 @@ class Watchlist extends Model
 {
     use Enums;
 
-    protected $fillable = ['name', 'address_id', 'user_id', 'type'];
+    protected $fillable = ['name', 'address_id', 'user_id', 'type', 'email_template'];
     public $timestamps = false;
     public $type_text = null;
 
@@ -37,6 +37,7 @@ class Watchlist extends Model
         $this->address_id = $this->matchAddress($data['coin'], $data['address']);
         $this->type = $data['type'];
         $this->notify = $data['notify'];
+        $this->email_template = $data['email_template'];
         $this->save();
     }
 
@@ -49,6 +50,7 @@ class Watchlist extends Model
         error_log($data['type']);
         $item->type = $data['type'];
         $item->notify = $data['notify'];
+        $item->email_template = $data['email_template'];
         $item->save();
     }
 

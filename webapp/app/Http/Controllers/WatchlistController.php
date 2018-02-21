@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Notification;
 use App\Watchlist;
 use App\Coin;
+use App\Setting;
 
 class WatchlistController extends Controller
 {
@@ -17,6 +18,7 @@ class WatchlistController extends Controller
             'type'=> 'required',
             'coin'=> 'required',
             'notify' => 'required',
+            'email_template' => 'nullable',
         ];
     }
 
@@ -39,9 +41,10 @@ class WatchlistController extends Controller
 
     public function create()
     {
+        $email_template = Setting::findOrFail('email_template')->value;
         $coins = Coin::getPairs();
-
-        return view('watchlist.create', compact('coins'));
+        
+        return view('watchlist.create', compact('coins', 'email_template'));
     }
 
     public function store(Request $request)
@@ -55,10 +58,11 @@ class WatchlistController extends Controller
 
     public function edit($id)
     {
+        $email_template = Setting::findOrFail('email_template')->value;
         $item = Watchlist::where('user_id', auth()->user()->id)->findOrFail($id);
         $coins = Coin::getPairs();
 
-        return view('watchlist.edit', compact('item', 'id', 'coins'));
+        return view('watchlist.edit', compact('item', 'id', 'coins', 'email_template'));
     }
 
     public function update(Request $request, $id)

@@ -14,6 +14,10 @@
     Coin: {{ $item->address->coin->name }}<br>
     Address: {{ $item->address->hash }}<br>
     Type: {{ App\Watchlist::getKeyedEnum('types', $item->type) }}<br>
+    Email template: <br>
+    <pre>
+        {{ $item->email_template }}
+    </pre><br>
 
     <h2>Notifications</h2>
     @include('notification.list')
