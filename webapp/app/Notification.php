@@ -1,6 +1,6 @@
 <?php
 
-namespace App;
+namespace Cryptoalarm;
 
 use Illuminate\Database\Eloquent\Model;
 
@@ -10,6 +10,6 @@ class Notification extends Model
 
     public function watchlist() 
     {
-        return $this->belongsTo('App\Watchlist', 'watchlist_id');
+        return $this->belongsTo('Cryptoalarm\Watchlist', 'watchlist_id');
     }
 }

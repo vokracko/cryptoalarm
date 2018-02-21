@@ -1,10 +1,10 @@
 <?php
 
-namespace App;
+namespace Cryptoalarm;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Traits\Enums;
-use App\Address;
+use Cryptoalarm\Traits\Enums;
+use Cryptoalarm\Address;
 
 class Watchlist extends Model
 {
@@ -22,7 +22,7 @@ class Watchlist extends Model
 
     public function address()
     {
-        return $this->belongsTo('App\Address', 'address_id');
+        return $this->belongsTo('Cryptoalarm\Address', 'address_id');
     }
 
     public function saveItem($data)

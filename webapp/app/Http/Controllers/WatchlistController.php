@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace Cryptoalarm\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Notification;
-use App\Watchlist;
-use App\Coin;
-use App\Setting;
+use Cryptoalarm\Notification;
+use Cryptoalarm\Watchlist;
+use Cryptoalarm\Coin;
+use Cryptoalarm\Setting;
 
 class WatchlistController extends Controller
 {

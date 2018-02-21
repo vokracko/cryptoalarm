@@ -92,7 +92,7 @@ class Cryptoalarm():
         logger.info('%s: terminating', coin)
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Crypto monitor')
+    parser = argparse.ArgumentParser(description='Cryptoalarm')
     parser.add_argument('--init', action='store_true', help='Set current blocks as last ones processed')
     args = parser.parse_args()
 

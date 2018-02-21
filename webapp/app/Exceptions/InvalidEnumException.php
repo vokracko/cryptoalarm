@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Exceptions;
+namespace Cryptoalarm\Exceptions;
 
 use Exception;
 

@@ -13,7 +13,7 @@ return [
     |
     */
 
-    'name' => env('APP_NAME', 'Laravel'),
+    'name' => env('APP_NAME', 'Cryptoalarm'),
 
     /*
     |--------------------------------------------------------------------------
@@ -171,11 +171,11 @@ return [
         /*
          * Application Service Providers...
          */
-        App\Providers\AppServiceProvider::class,
-        App\Providers\AuthServiceProvider::class,
-        // App\Providers\BroadcastServiceProvider::class,
-        App\Providers\EventServiceProvider::class,
-        App\Providers\RouteServiceProvider::class,
+        Cryptoalarm\Providers\AppServiceProvider::class,
+        Cryptoalarm\Providers\AuthServiceProvider::class,
+        // Cryptoalarm\Providers\BroadcastServiceProvider::class,
+        Cryptoalarm\Providers\EventServiceProvider::class,
+        Cryptoalarm\Providers\RouteServiceProvider::class,
         Collective\Html\HtmlServiceProvider::class,
     ],
 

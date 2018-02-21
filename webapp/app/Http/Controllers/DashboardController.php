@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace Cryptoalarm\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Watchlist;
-use App\Notification;
+use Cryptoalarm\Watchlist;
+use Cryptoalarm\Notification;
 
 class DashboardController extends Controller
 {

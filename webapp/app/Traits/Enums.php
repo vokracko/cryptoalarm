@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Traits;
+namespace Cryptoalarm\Traits;
 
 use Illuminate\Support\Str;
-use App\Exceptions\InvalidEnumException;
+use Cryptoalarm\Exceptions\InvalidEnumException;
 
 trait Enums
 {

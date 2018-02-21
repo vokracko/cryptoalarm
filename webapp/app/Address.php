@@ -1,6 +1,6 @@
 <?php
 
-namespace App;
+namespace Cryptoalarm;
 
 use Illuminate\Database\Eloquent\Model;
 
@@ -12,6 +12,6 @@ class Address extends Model
 
     public function coin()
     {
-        return $this->belongsTo('App\Coin', 'coin_id');
+        return $this->belongsTo('Cryptoalarm\Coin', 'coin_id');
     }
 }
