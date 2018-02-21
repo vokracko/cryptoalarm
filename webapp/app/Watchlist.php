@@ -20,6 +20,11 @@ class Watchlist extends Model
         'inout' => 'Input & output',
     ];
 
+    protected $enumNotifyTypes = [
+        'rest' => 'Rest',
+        'email' => 'Email',
+    ];
+
     public function address()
     {
         return $this->belongsTo('Cryptoalarm\Address', 'address_id');
@@ -31,6 +36,7 @@ class Watchlist extends Model
         $this->name = $data['name'];
         $this->address_id = $this->matchAddress($data['coin'], $data['address']);
         $this->type = $data['type'];
+        $this->notify = $data['notify'];
         $this->email_template = $data['email_template'];
         $this->save();
     }
@@ -41,7 +47,9 @@ class Watchlist extends Model
         $item->user_id = auth()->user()->id;
         $item->name = $data['name'];
         $item->address_id = $this->matchAddress($data['coin'], $data['address']);
+        error_log($data['type']);
         $item->type = $data['type'];
+        $item->notify = $data['notify'];
         $item->email_template = $data['email_template'];
         $item->save();
     }
