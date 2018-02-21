@@ -17,7 +17,6 @@ class WatchlistController extends Controller
             'address'=> 'required',
             'type'=> 'required',
             'coin'=> 'required',
-            'notify' => 'required',
             'email_template' => 'nullable',
         ];
     }
@@ -43,7 +42,7 @@ class WatchlistController extends Controller
     {
         $email_template = Setting::findOrFail('email_template')->value;
         $coins = Coin::getPairs();
-        
+
         return view('watchlist.create', compact('coins', 'email_template'));
     }
 

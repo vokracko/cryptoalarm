@@ -16,10 +16,6 @@
     {{ Form::text('address', isset($item) ? $item->address->hash : '', ['class' => "form-control"]) }}
 </div>
 <div class="form-group">
-    {{ Form::label('notify', 'Notification:') }}
-    {{ Form::select('notify', App\Watchlist::getEnum('notifyType'), isset($item) ? $item->notify : '', ['class' => "form-control"]) }}
-</div>
-<div class="form-group">
     You can use placeholders to positions information in your emails:
     <ul>
         <li><code>{name}</code> - watchlist name</li>

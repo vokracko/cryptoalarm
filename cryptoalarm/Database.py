@@ -54,7 +54,6 @@ class Database():
             SELECT 
                 w.type "type", 
                 w.name "watchlist_name", 
-                w.notify "notify", 
                 w.id "watchlist_id",
                 w.email_template "email_template",
                 u.id "user_id", 

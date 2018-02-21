@@ -45,7 +45,6 @@ class Notifier():
                     'out_users': [],
                     'inout_users': [],
                 }
-                # print(json.dumps(self.data, indent=4))
 
             ptr = self.data[address['coin']]['data'][address['hash']]
 
@@ -56,7 +55,7 @@ class Notifier():
         self.queue.put((coin, tx))
 
     def worker(self, stop):
-        while not stop.is_set():
+        while not stop.is_set() or not self.queue.empty():
             try:
                 coin, tx = self.queue.get(timeout=cfg.NOTIFY_INTERVAL.total_seconds())
             except queue.Empty:
@@ -64,6 +63,7 @@ class Notifier():
                 continue
 
             self.process_transaction(coin, tx)
+            self.queue.task_done()
             if self.last_run + cfg.NOTIFY_INTERVAL < datetime.now():
                 self.reload()
 
@@ -105,10 +105,8 @@ class Notifier():
     def send(self, coin, explorer_url, user, address, txs):
         logger.debug('%s: notifying user %s about %s', coin, user, txs)
 
-        if user['notify'] == 'email':
-            self.mailer.send(coin, explorer_url, user, address, txs)
-        elif user['notify'] == 'rest':
-            self.rest.send(coin, explorer_url, user, address, txs)
+        self.mailer.send(coin, explorer_url, user, address, txs)
+        self.rest.send(coin, explorer_url, user, address, txs)
 
 
 class Sender():
