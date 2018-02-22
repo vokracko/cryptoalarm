@@ -10,7 +10,7 @@ class Watchlist extends Model
 {
     use Enums;
 
-    protected $fillable = ['name', 'address_id', 'user_id', 'type', 'email_template'];
+    protected $fillable = ['name', 'address_id', 'user_id', 'type', 'email_template', 'notify'];
     public $timestamps = false;
     public $type_text = null;
 
@@ -23,6 +23,7 @@ class Watchlist extends Model
     protected $enumNotifyTypes = [
         'rest' => 'Rest',
         'email' => 'Email',
+        'both' => 'Both',
     ];
 
     public function address()

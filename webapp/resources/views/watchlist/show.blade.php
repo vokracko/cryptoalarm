@@ -13,7 +13,8 @@
     <br>
     Coin: {{ $item->address->coin->name }}<br>
     Address: <a href="{{ $item->address->coin->explorer_url . $item->address->hash }}">{{ $item->address->hash }}</a><br>
-    Type: {{ App\Watchlist::getKeyedEnum('types', $item->type) }}<br>
+    Type: {{ Cryptoalarm\Watchlist::getKeyedEnum('types', $item->type) }}<br>
+    Notify: {{ Cryptoalarm\Watchlist::getKeyedEnum('notifyTypes', $item->notify) }}<br>
     Email template: <br>
     <pre>
         {{ $item->email_template }}
