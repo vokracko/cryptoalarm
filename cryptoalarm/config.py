@@ -2,7 +2,7 @@ import logging
 import logging.config
 from datetime import timedelta
 
-DATABASE = 'dbname=cryptoalarm user=postgres'
+DATABASE = 'dbname=cryptoalarm user=postgres host=127.0.0.1 password=secret'
 
 COINS = {
     # 'BTC': 'http://bitcoin:local321@147.229.9.86:8332',

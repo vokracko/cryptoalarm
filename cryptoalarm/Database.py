@@ -43,8 +43,9 @@ class Database():
                 c.name "coin" 
             FROM 
                 addresses a 
-            NATURAL JOIN 
+            JOIN 
                 coins c
+            ON a.coin_id = c.id
         '''
         self.cursor.execute(sql)
         return self.cursor.fetchall()
