@@ -43,3 +43,10 @@ cryptoalarm/$ pip install -r requirements.txt
 cryptoalarm/$ ./cryptoalarm.py --init
 cryptoalarm/$ ./cryptoalarm.py 
 ```
+
+Docker
+=====
+```
+docker build -t cryptoalarm .
+docker run -v config.py/config.py cryptoalarm
+```
