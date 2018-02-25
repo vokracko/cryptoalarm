@@ -4,8 +4,12 @@ import requests
 import queue
 from datetime import datetime, timedelta
 from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 from config import logger
 import config as cfg
+from email.utils import formatdate
+import time
+import re
 
 
 class Notifier():
@@ -153,13 +157,19 @@ class Mailer(Sender):
 
     def send(self, coin, explorer_url, user, address, txs):
         body = self.build_message(coin, explorer_url, user, address, txs)
-        msg = MIMEText(body, 'html')
+        part1 = MIMEText(re.sub('<[^<]+?>', '', body), 'plain')
+        part2 = MIMEText('<html>'+body+'</html>', 'html')
+        msg = MIMEMultipart('alternative')
+        msg.attach(part1)
+        msg.attach(part2)
         msg['Subject'] = self.subject.format(coin=coin, name=user['watchlist_name'])
         msg['From'] = self.email
         msg['To'] = user['email']
-
+        msg['Date'] = formatdate(time.time())
+        
         self.connect()
         self.server.sendmail(self.email, [user['email']], msg.as_string())
+        logger.info('Notifier: MAIL Sent')
         self.server.quit()
 
 class Rest(Sender):
@@ -177,5 +187,6 @@ class Rest(Sender):
 
     def send(self, coin, explorer_url, user, address, txs):
         payload = self.build_message(coin, user, address, txs)
-        requests.post(self.url, json=payload, headers=self.headers)
+        result = requests.post(self.url, json=payload, headers=self.headers)
+        logger.info('Notifier: REST ' + str(result))
 
