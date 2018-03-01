@@ -7,6 +7,7 @@ use Cryptoalarm\Notification;
 use Cryptoalarm\Watchlist;
 use Cryptoalarm\Coin;
 use Cryptoalarm\Setting;
+use Cryptoalarm\AddressMatcher;
 
 class WatchlistController extends Controller
 {
@@ -24,11 +25,12 @@ class WatchlistController extends Controller
 
     public function show($id)
     {
+        $email_template = Setting::findOrFail('email_template')->value;
         $item = Watchlist::where('user_id', auth()->user()->id)->findOrFail($id);
         $list = Notification::where('watchlist_id', $item->id)->paginate(50);
         $skipped = ($list->currentPage() * $list->perPage()) - $list->perPage();
         
-        return view('watchlist.show', compact('list', 'item', 'skipped'));
+        return view('watchlist.show', compact('list', 'item', 'skipped', 'email_template'));
     }
 
     public function index()
@@ -82,5 +84,18 @@ class WatchlistController extends Controller
         $item->delete();
 
         return redirect('/watchlist')->with('success', 'Item has been deleted!');
+    }
+
+    public function identify(Request $request)
+    {
+        $address = $request->input('address');
+        $am = new AddressMatcher();
+        $possible_coins = $am->identify_address($address);
+
+        return response()->json([
+            'status' => !empty($possible_coins),
+            'coins' => $possible_coins,
+        ]);
+
     }
 }

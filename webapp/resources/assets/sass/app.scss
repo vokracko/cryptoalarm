@@ -7,3 +7,13 @@
 
 // Bootstrap
 @import "~bootstrap-sass/assets/stylesheets/bootstrap";
+
+// Noty
+@import "~noty/src/noty";
+@import "~noty/src/themes/metroui";
+
+
+select option:disabled {
+    background-color: #999999;
+    font-weight: bold;
+}

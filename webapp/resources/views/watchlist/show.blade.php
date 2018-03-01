@@ -16,9 +16,7 @@
     Type: {{ Cryptoalarm\Watchlist::getKeyedEnum('types', $item->type) }}<br>
     Notify: {{ Cryptoalarm\Watchlist::getKeyedEnum('notifyTypes', $item->notify) }}<br>
     Email template: <br>
-    <pre>
-        {{ $item->email_template }}
-    </pre><br>
+    <pre>{{ $item->email_template ? $item->email_template : $email_template }}</pre><br>
 
     <h2>Notifications</h2>
     @include('notification.list')

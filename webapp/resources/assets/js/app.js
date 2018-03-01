@@ -1,22 +1,35 @@
 
-/**
- * First we will load all of this project's JavaScript dependencies which
- * includes Vue and other libraries. It is a great starting point when
- * building robust, powerful web applications using Vue and Laravel.
- */
-
 require('./bootstrap');
 
-window.Vue = require('vue');
+var noty = require('noty');
+noty.overrideDefaults({layout: 'topRight', timeout: 4000, theme: 'metroui', progressBar: false});
 
-/**
- * Next, we will create a fresh Vue application instance and attach it to
- * the page. Then, you may begin adding components to this application
- * or customize the JavaScript scaffolding to fit your unique needs.
- */
+function disableOptions(select, cond, val) {
+    $(select.options).filter(cond).prop('disabled', val);
+}
 
-Vue.component('example', require('./components/Example.vue'));
+$(document).ready(function() {
+    $('input[name="address"]').blur(function() {
+        var select = $('select[name="coin"]')[0];
+        var val = $(this).val();
 
-const app = new Vue({
-    el: '#app'
+        // enable all options
+        disableOptions(select, function(index, item) {return true;}, false);
+
+        $.get('/api/identify', {address: val}, function(response) {
+            if(!response.status) {
+                new noty({text: 'Address of unknown format, please select manually', type: 'warning'}).show();
+            } else if (response.coins) {
+                // disable not matched options
+                disableOptions(select, function(index, item) {return !response.coins.includes(item.text.toLowerCase());}, true);
+                if(response.coins.length == 1) {
+                    // select only available option
+                    $(select.options).filter(':enabled').prop('selected', true);
+                    new noty({text: 'Address identified as ' + response.coins[0], type: 'success'}).show();
+                } else {
+                    new noty({text: 'Address matches multiple coins, please select one manually', type: 'info'}).show();
+                }
+            }
+        });
+    });
 });

@@ -8,12 +8,14 @@ Závislosti:
 * python3
 * postgresql
 * composer
+* npm
 * PHP >= 7.0.0, extensions: OpenSSL, PDO, Mbstring, Tokenizer, XML, pgsql
 
 Webapp
 ====
 ```
 webapp/$ composer install
+webapp/$ npm install
 webapp/$ cp .env.example .env
 webapp/$ php artisan key:generate
 ```
@@ -22,6 +24,7 @@ Vytvořit databázi např: ```createdb cryptoalarm```, nastavit připojení v ``
 ```
 webapp/$ php artisan migrate
 webapp/$ php artisan db:seed
+webapp/$ npm run dev
 webapp/$ php artisan serve
 ```
 Výsledkem je aplikace běžící na adrese: [http://localhost:8000](http://localhost:8000)
