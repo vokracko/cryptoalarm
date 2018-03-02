@@ -1,8 +1,11 @@
 import requests
 import json
+import time
 from functools import reduce
 from datetime import timedelta
 import config as cfg
+
+logger = cfg.logger
 
 
 class Coin():
@@ -35,19 +38,32 @@ class Coin():
         raise NotImplementedError()
 
     def rpc(self, method, *args, **kwargs):
+        retry_interval = cfg.RETRY_INTERVAL_MIN
         headers = {'content-type': 'application/json'}
         payload = {
             'jsonrpc': '2.0',
             'method': method,
-            'params': [item for item in args],
+            'params': list(args),
             'id': 0,
         }
 
-        # print(json.dumps(payload))
-        response = requests.post(self.url, json=payload, headers=headers, timeout=(cfg.TIMEOUT['connect'], cfg.TIMEOUT['read']))
-        # TODO error handling
-        # print(response.json())
-        return response.json()['result']
+        while True:
+            try:
+                response = requests.post(self.url, json=payload, headers=headers, timeout=(cfg.TIMEOUT['connect'], cfg.TIMEOUT['read']))
+                data = response.json()
+            except requests.exceptions.RequestException:
+                logger.debug("%s: request failed, will be repeated", self.__class__.__name__)
+                retry_interval = max(retry_interval * 2, cfg.RETRY_INTERVAL_MAX)
+                time.sleep(retry_interval)
+                continue
+
+            if 'error' in data and data['error']:
+                logger.error(data)
+                continue
+
+            break
+
+        return data['result']
 
     def __str__(self):
         return self.__unicode__()

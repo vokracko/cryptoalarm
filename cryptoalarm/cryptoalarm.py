@@ -36,6 +36,12 @@ class Cryptoalarm():
         self.stop.set()
         for thread in self.threads:
             thread.join()
+    
+    def test_connection(self):
+        self.notifier.test_connection()
+
+        for coin in self.coins:
+            coin.get_last_block_number()
 
     def start(self):
         for coin in self.coins:
@@ -88,7 +94,6 @@ class Cryptoalarm():
 
             until_next_block = (coin.block_time - timedelta(seconds=processing_time)).total_seconds()
             self.stop.wait(timeout=until_next_block)
-
         logger.info('%s: terminating', coin)
 
 if __name__ == '__main__':
@@ -96,9 +101,10 @@ if __name__ == '__main__':
     parser.add_argument('--init', action='store_true', help='Set current blocks as last ones processed')
     args = parser.parse_args()
 
-    m = Cryptoalarm()
+    ca = Cryptoalarm()
+    ca.test_connection()
 
     if args.init:
-        m.set_last_blocks()
+        ca.set_last_blocks()
     else:
-        m.start()
+        ca.start()

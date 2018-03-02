@@ -30,6 +30,10 @@ class Notifier():
         self.load()
         self.last_run = datetime.now()
 
+    def test_connection(self):
+        self.rest.test_connection()
+        self.mailer.test_connection()
+
     def load(self):
         logger.info('Notifier: load')
         self.data = {}
@@ -94,35 +98,42 @@ class Notifier():
                 # notify users with INOUT about IN and OUT tranasctions
                 if address_data['out'] or address_data['in']:
                     for user in address_data['inout_users']: 
-                        self.send(coin_name, explorer_url, user, address, address_data['out'] + address_data['in'])
+                        self.add(coin_name, explorer_url, user, address, address_data['out'] + address_data['in'])
 
                 if address_data['out']:
                     for user in address_data['out_users']: 
-                        self.send(coin_name, explorer_url, user, address, address_data['out'])
+                        self.add(coin_name, explorer_url, user, address, address_data['out'])
 
                 if address_data['in']:
                     for user in address_data['in_users']: 
-                        self.send(coin_name, explorer_url, user, address, address_data['in'])
+                        self.add(coin_name, explorer_url, user, address, address_data['in'])
 
                 address_data['in'] = []
                 address_data['out'] = []
+        
+        self.mailer.send()
+        self.rest.send()
 
-    def send(self, coin, explorer_url, user, address, txs):
-        logger.debug('%s: notifying user %s about %s', coin, user, txs)
+    def add(self, coin, explorer_url, user, address, txs):
+        logger.debug('%s: add notification for user %s about %s', coin, user, txs)
 
-        if user['notify'] == 'email':
-            self.mailer.send(coin, explorer_url, user, address, txs)
-        elif user['notify'] == 'rest':
-            self.rest.send(coin, explorer_url, user, address, txs)
-        elif user['notify'] == 'both':
-            self.mailer.send(coin, explorer_url, user, address, txs)
-            self.rest.send(coin, explorer_url, user, address, txs)
-
+        if user['notify'] in ['email', 'both']:
+            self.mailer.add(coin, explorer_url, user, address, txs)
+        elif user['notify'] in ['rest', 'both']:
+            self.rest.add(coin, explorer_url, user, address, txs)
 
 
 class Sender():
-    def send(self, coin, explorer_url, user, address, txs):
+
+    def add(self, coin, explorer_url, user, address, txs):
+        self.queue.append((coin, explorer_url, user, address, txs))
+
+    def send(self):
         raise NotImplementedError()
+    
+    def test_connection(self):
+        raise NotImplementedError()
+
 
 class Mailer(Sender):
     server = None
@@ -131,16 +142,21 @@ class Mailer(Sender):
     subject = None
 
     def __init__(self, subject, email, template):
+        self.queue = []
         self.email = email
         self.subject = subject
         self.template = template
+    
+    def test_connection(self):
+        self.connect()
+        self.server.quit()
 
     def connect(self):
         self.server = smtplib.SMTP(cfg.SMTP['server'], cfg.SMTP['port'])
         self.server.starttls()
         self.server.login(cfg.SMTP['username'], cfg.SMTP['password'])
 
-    def build_message(self, coin, explorer_url, user, address, txs):
+    def build_body(self, coin, explorer_url, user, address, txs):
         template = self.template
         if user['email_template']:
             template = user['email_template']
@@ -155,8 +171,8 @@ class Mailer(Sender):
 
         return template.format(address=address_str, coin=coin, name=user['watchlist_name'], txs='\n'.join(txs_links))
 
-    def send(self, coin, explorer_url, user, address, txs):
-        body = self.build_message(coin, explorer_url, user, address, txs)
+    def build_message(self, coin, explorer_url, user, address, txs):
+        body = self.build_body(coin, explorer_url, user, address, txs)
         part1 = MIMEText(re.sub('<[^<]+?>', '', body), 'plain')
         part2 = MIMEText('<html>'+body+'</html>', 'html')
         msg = MIMEMultipart('alternative')
@@ -166,27 +182,54 @@ class Mailer(Sender):
         msg['From'] = self.email
         msg['To'] = user['email']
         msg['Date'] = formatdate(time.time())
-        
-        self.connect()
-        self.server.sendmail(self.email, [user['email']], msg.as_string())
-        logger.info('Notifier: MAIL Sent')
-        self.server.quit()
+
+        return msg.as_string()
+
+    def send(self):
+        try:
+            self.connect()
+
+            while self.queue:
+                coin, explorer_url, user, address, txs = self.queue[0]
+                message = self.build_message(coin, explorer_url, user, address, txs)
+                self.server.sendmail(self.email, [user['email']], message)
+                self.queue.pop(0)
+
+            self.server.quit()
+            logger.info('Notifier: MAIL Sent')
+        except Exception as e:
+            logger.debug('Notifier: MAIL failed')
+            logger.exception(e)
+
 
 class Rest(Sender):
     url = None
     headers = {'content-type': 'application/json'}
 
     def __init__(self, url):
+        self.queue = []
         self.url = url
 
-    def build_message(self, coin, user, address, txs):
+    def test_connection(self):
+        requests.post(self.url, json={}, headers=self.headers)
+
+    def build_message(self, user, txs):
         return {
             'watchlist_id': user['watchlist_id'],
             'transactions': txs,
         }
 
-    def send(self, coin, explorer_url, user, address, txs):
-        payload = self.build_message(coin, user, address, txs)
-        result = requests.post(self.url, json=payload, headers=self.headers)
-        logger.info('Notifier: REST ' + str(result))
+    def send(self):
+        try:
+            while self.queue:
+                coin, explorer_url, user, address, txs = self.queue[0]
+                payload = self.build_message(user, txs)
+                result = requests.post(self.url, json=payload, headers=self.headers)
+                self.queue.pop(0)
+
+            logger.info('Notifier: REST send')
+        except requests.exceptions.Timeout:
+            logger.debug('Notifier: REST timedout, will be repeated')
+        except requests.exceptions.RequestException as e:
+            logger.debug('Notifier: REST failed')
 
