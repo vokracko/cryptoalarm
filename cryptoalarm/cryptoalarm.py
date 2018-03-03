@@ -88,12 +88,13 @@ class Cryptoalarm():
                 if self.stop.is_set():
                     break
 
-                database.set_last_block_number(coin, current_number)
                 current_number, block_time = self.process_block(coin, current_number)
                 processing_time += block_time
+                database.set_last_block_number(coin, current_number)
 
             until_next_block = (coin.block_time - timedelta(seconds=processing_time)).total_seconds()
             self.stop.wait(timeout=until_next_block)
+
         logger.info('%s: terminating', coin)
 
 if __name__ == '__main__':

@@ -47,8 +47,8 @@ class Notifier():
         for address in self.database.get_addresses():
             if not address['hash'] in self.data[address['coin']]['data']:
                 self.data[address['coin']]['data'][address['hash']] = {
-                    'in': [],
-                    'out': [],
+                    'in': set(),
+                    'out': set(),
                     'in_users': [],
                     'out_users': [],
                     'inout_users': [],
@@ -87,7 +87,7 @@ class Notifier():
             intersect = set(self.data[coin_name]['data'].keys()) & tx[type]
 
             for address in intersect:
-                self.data[coin_name]['data'][address][type].append(tx['hash'])
+                self.data[coin_name]['data'][address][type].add(tx['hash'])
 
     def notify(self):
         logger.info('Notifier: notify')
@@ -98,7 +98,7 @@ class Notifier():
                 # notify users with INOUT about IN and OUT tranasctions
                 if address_data['out'] or address_data['in']:
                     for user in address_data['inout_users']: 
-                        self.add(coin_name, explorer_url, user, address, address_data['out'] + address_data['in'])
+                        self.add(coin_name, explorer_url, user, address, address_data['out'] | address_data['in'])
 
                 if address_data['out']:
                     for user in address_data['out_users']: 
@@ -119,14 +119,15 @@ class Notifier():
 
         if user['notify'] in ['email', 'both']:
             self.mailer.add(coin, explorer_url, user, address, txs)
-        elif user['notify'] in ['rest', 'both']:
+
+        if user['notify'] in ['rest', 'both']:
             self.rest.add(coin, explorer_url, user, address, txs)
 
 
 class Sender():
 
     def add(self, coin, explorer_url, user, address, txs):
-        self.queue.append((coin, explorer_url, user, address, txs))
+        self.queue.append((coin, explorer_url, user, address, list(txs)))
 
     def send(self):
         raise NotImplementedError()
@@ -196,8 +197,8 @@ class Mailer(Sender):
                 self.queue.pop(0)
 
             self.server.quit()
-            logger.info('Notifier: MAIL Sent')
-        except Exception as e:
+            logger.info('Notifier: MAIL sent')
+        except (OSError, Exception) as e:
             logger.debug('Notifier: MAIL failed')
             logger.exception(e)
 
@@ -227,7 +228,7 @@ class Rest(Sender):
                 result = requests.post(self.url, json=payload, headers=self.headers)
                 self.queue.pop(0)
 
-            logger.info('Notifier: REST send')
+            logger.info('Notifier: REST sent')
         except requests.exceptions.Timeout:
             logger.debug('Notifier: REST timedout, will be repeated')
         except requests.exceptions.RequestException as e:
