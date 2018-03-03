@@ -52,9 +52,9 @@ class Coin():
                 response = requests.post(self.url, json=payload, headers=headers, timeout=(cfg.TIMEOUT['connect'], cfg.TIMEOUT['read']))
                 data = response.json()
             except requests.exceptions.RequestException:
-                logger.debug("%s: request failed, will be repeated", self.__class__.__name__)
-                retry_interval = max(retry_interval * 2, cfg.RETRY_INTERVAL_MAX)
+                logger.warn("%s: request failed, will be repeated after %ss", self.__class__.__name__, retry_interval)
                 time.sleep(retry_interval)
+                retry_interval = min(retry_interval * 2, cfg.RETRY_INTERVAL_MAX)
                 continue
 
             if 'error' in data and data['error']:
@@ -62,7 +62,7 @@ class Coin():
                 continue
 
             break
-
+        
         return data['result']
 
     def __str__(self):

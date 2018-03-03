@@ -198,9 +198,8 @@ class Mailer(Sender):
 
             self.server.quit()
             logger.info('Notifier: MAIL sent')
-        except (OSError, Exception) as e:
-            logger.debug('Notifier: MAIL failed')
-            logger.exception(e)
+        except Exception as e:
+            logger.warn('Notifier: MAIL failed')
 
 
 class Rest(Sender):
@@ -230,7 +229,7 @@ class Rest(Sender):
 
             logger.info('Notifier: REST sent')
         except requests.exceptions.Timeout:
-            logger.debug('Notifier: REST timedout, will be repeated')
+            logger.warn('Notifier: REST timedout, will be repeated')
         except requests.exceptions.RequestException as e:
-            logger.debug('Notifier: REST failed')
+            logger.warn('Notifier: REST failed')
 
