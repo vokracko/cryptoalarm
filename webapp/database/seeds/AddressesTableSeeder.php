@@ -11,20 +11,12 @@ class AddressesTableSeeder extends Seeder
      */
     public function run()
     {
-        $rows = [
-            ['1dice8EMZmqKvrGE4Qc9bUFf9PX3xaYDp', 1],
-            ['1KFHE7w8BhaENAswwryaoccDb6qcT6DbYY', 2],
-            ['LhyLNfBkoKshT7R8Pce6vkB9T2cP2o84hx', 3],
-            ['XpESxaUmonkq8RaLLp46Brx2K39ggQe226', 4],
-            ['t1KLGj3izuKveu1eFZUiwp3BEKHQAiYv2Z7', 5],
-            ['0xfbb1b73c4f0bda4f67dca266ce6ef42f520fbb98', 6],
-        ];
+        $db = \Config::get('database.connections.pgsql.database');
+        $host = \Config::get('database.connections.pgsql.hostname');
+        $user = \Config::get('database.connections.pgsql.username');
+        $pass = \Config::get('database.connections.pgsql.password');
 
-        foreach($rows as $row) {
-            DB::table('addresses')->insert([
-                'hash' => $row[0],
-                'coin_id' => $row[1],
-            ]);
-        }
+        exec(sprintf('psql postgresql://%s:%s@%s/%s -c "\COPY addresses (id, hash, coin_id) FROM \'addresses.csv\' delimiter \';\' csv;"', $user, $pass, $host, $db));
+        DB::query("select setval('addresses_id_seq', (SELECT MAX(id) FROM addresses) + 1);");
     }
 }

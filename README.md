@@ -9,6 +9,8 @@ Závislosti:
 * postgresql
 * composer
 * npm
+* Java
+* selenium standalone server [https://www.seleniumhq.org/download/](https://www.seleniumhq.org/download/)
 * PHP >= 7.0.0, extensions: OpenSSL, PDO, Mbstring, Tokenizer, XML, pgsql
 
 Webapp
@@ -45,6 +47,12 @@ Nastavit připojení k db a rpc api v ```cryptoalarm/config.py```
 cryptoalarm/$ pip install -r requirements.txt
 cryptoalarm/$ ./cryptoalarm.py --init
 cryptoalarm/$ ./cryptoalarm.py 
+```
+
+[Bitcointalk.org](https://bitcointalk.org/)
+===
+```
+webapp/$ php artisan command:bitcointalk /path/to/selenium-standalone-server.jar [port=4444]
 ```
 
 Docker

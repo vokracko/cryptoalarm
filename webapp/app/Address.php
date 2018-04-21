@@ -14,4 +14,12 @@ class Address extends Model
     {
         return $this->belongsTo('Cryptoalarm\Coin', 'coin_id');
     }
+
+    public static function getOrCreate($coin, $hash)
+    {
+        return self::firstOrCreate([
+            'coin_id' => Coin::findOrFail($coin)->id,
+            'hash' => $hash,
+        ])->id;
+    }
 }

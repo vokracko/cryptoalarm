@@ -15,7 +15,6 @@ class AddressMatcher {
     ];
 
     public function identify_address($address) {
-        global $coins;
         $result = [];
 
         foreach($this->coins as $coin => $regexes) {
@@ -31,7 +30,6 @@ class AddressMatcher {
     }
 
     public function match_addresses($text) {
-        global $coins;
         $results = [];
 
         foreach($this->coins as $coin => $regexes) {
@@ -41,8 +39,9 @@ class AddressMatcher {
                 $res = preg_match_all('/ ' . $regex . ' /', $text, $matches);
 
                 if($res) {
+                    $matches[0] = array_unique($matches[0]);
                     foreach($matches[0] as $match) {
-                        $results[trim($match)] = $coin;
+                        $results[trim($match)][] = $coin;
                     }
                 }
             }

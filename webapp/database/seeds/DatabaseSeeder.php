@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
             WatchlistsTableSeeder::class,
             SettingsTableSeeder::class,
             NotificationsTableSeeder::class,
+            IdentitiesTableSeeder::class,
         ]);
     }
 }

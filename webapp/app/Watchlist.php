@@ -35,7 +35,7 @@ class Watchlist extends Model
     {
         $this->user_id = auth()->user()->id;
         $this->name = $data['name'];
-        $this->address_id = $this->matchAddress($data['coin'], $data['address']);
+        $this->address_id = Address::getOrCreate($data['coin'], $data['address']);
         $this->type = $data['type'];
         $this->notify = $data['notify'];
         $this->email_template = $data['email_template'];
@@ -47,19 +47,10 @@ class Watchlist extends Model
         $item = $this->findOrFail($data['id']);
         $item->user_id = auth()->user()->id;
         $item->name = $data['name'];
-        $item->address_id = $this->matchAddress($data['coin'], $data['address']);
-        error_log($data['type']);
+        $item->address_id = Address::getOrCreate($data['coin'], $data['address']);
         $item->type = $data['type'];
         $item->notify = $data['notify'];
         $item->email_template = $data['email_template'];
         $item->save();
-    }
-
-    public function matchAddress($coin, $hash)
-    {
-        return Address::firstOrCreate([
-            'coin_id' => Coin::findOrFail($coin)->id,
-            'hash' => $hash,
-        ])->id;
     }
 }

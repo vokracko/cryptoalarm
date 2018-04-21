@@ -16,7 +16,22 @@
     Type: {{ Cryptoalarm\Watchlist::getKeyedEnum('types', $item->type) }}<br>
     Notify: {{ Cryptoalarm\Watchlist::getKeyedEnum('notifyTypes', $item->notify) }}<br>
     Email template: <br>
-    <pre>{{ $item->email_template ? $item->email_template : $email_template }}</pre><br>
+    <pre>{{ $item->email_template ? $item->email_template : $email_template }}</pre>
+    @if($identities->isNotEmpty())
+        <h2>Identities</h2>
+        <table class="table table-striped">
+            <tr>
+                <th>Source</th>
+                <th>Label</th>
+            </tr>
+            @foreach($identities as $item)
+                <tr>
+                    <td>{{ $item->source }}</td>
+                    <td><a href="{{ $item->url }}">{{ $item->label }}</a></td>
+                </tr>
+            @endforeach
+        </table>
+    @endif
 
     <h2>Notifications</h2>
     @include('notification.list')

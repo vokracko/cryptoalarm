@@ -12,19 +12,20 @@ class UsersTableSeeder extends Seeder
     public function run()
     {
         $rows = [
-            'alice',
-            'bob',
-            'carol',
-            'dave',
+            [1, 'alice'],
+            [2, 'bob'],
+            [3, 'carol'],
+            [4, 'dave'],
         ];
 
         foreach($rows as $row) {
             DB::table('users')->insert([
-                'name' => $row,
-                'email' => $row . "@cryptoalarm.tld",
-                'password' => bcrypt($row),
-                'email_template' => null,
+                'id' => $row[0],
+                'name' => $row[1],
+                'email' => $row[1] . "@cryptoalarm.tld",
+                'password' => bcrypt($row[1]),
             ]);
         }
+        DB::query("select setval('users_id_seq', (SELECT MAX(id) FROM users) + 1);");
     }
 }

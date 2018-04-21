@@ -7,6 +7,7 @@ use Cryptoalarm\Notification;
 use Cryptoalarm\Watchlist;
 use Cryptoalarm\Coin;
 use Cryptoalarm\Setting;
+use Cryptoalarm\Identity;
 use Cryptoalarm\AddressMatcher;
 
 class WatchlistController extends Controller
@@ -27,10 +28,11 @@ class WatchlistController extends Controller
     {
         $email_template = Setting::findOrFail('email_template')->value;
         $item = Watchlist::where('user_id', auth()->user()->id)->findOrFail($id);
+        $identities = Identity::where('address_id', $item->address_id)->get();
         $list = Notification::where('watchlist_id', $item->id)->paginate(50);
         $skipped = ($list->currentPage() * $list->perPage()) - $list->perPage();
         
-        return view('watchlist.show', compact('list', 'item', 'skipped', 'email_template'));
+        return view('watchlist.show', compact('list', 'item', 'skipped', 'email_template', 'identities'));
     }
 
     public function index()

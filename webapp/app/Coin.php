@@ -14,4 +14,9 @@ class Coin extends Model
             return [$item['id'] => $item['name']];
         });
     }
+
+    public static function getByName($name) 
+    {
+        return self::where('name', strtoupper($name))->first();
+    }
 }
