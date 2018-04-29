@@ -78,7 +78,8 @@ class Database():
                 w.id "watchlist_id",
                 w.email_template "email_template",
                 u.id "user_id", 
-                u.email "email"
+                u.email "email",
+                u.rest_url "rest_url"
             FROM 
                 watchlists w 
             JOIN 

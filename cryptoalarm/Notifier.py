@@ -20,7 +20,6 @@ class Notifier():
     mailer = None
     last_run = None
 
-
     def __init__(self, database):
         self.database = database
         self.rest = Rest(database.get_setting('notification_url'))
@@ -148,11 +147,14 @@ class Mailer(Sender):
         self.template = template
     
     def test_connection(self):
+        logger.error("mail connect")
         self.connect()
         self.server.quit()
+        logger.error("mail disconnect")
 
     def connect(self):
         self.server = smtplib.SMTP(cfg.SMTP['server'], cfg.SMTP['port'])
+        self.server.set_debuglevel(True)
         self.server.starttls()
         self.server.login(cfg.SMTP['username'], cfg.SMTP['password'])
 
@@ -212,23 +214,41 @@ class Rest(Sender):
     def test_connection(self):
         requests.post(self.url, json={}, headers=self.headers)
 
-    def build_message(self, user, txs):
-        return {
-            'watchlist_id': user['watchlist_id'],
-            'transactions': txs,
-        }
+    def add(self, coin, explorer_url, user, address, txs):
+        self.queue.append((coin, explorer_url, user, address, list(txs), True))
+
+        if user['rest_url']:
+            self.queue.append((coin, explorer_url, user, address, list(txs), False))
+
+    def build_message(self, user, address, coin, txs, internal):
+        if internal:
+            return {
+                'watchlist_id': user['watchlist_id'],
+                'transactions': txs,
+            }
+        else:
+            return {
+                'address': address,
+                'coin': coin,
+                'watchlist': user['watchlist_name'],
+                'transactions': txs,
+            }
 
     def send(self):
-        try:
-            while self.queue:
-                coin, explorer_url, user, address, txs = self.queue[0]
-                payload = self.build_message(user, txs)
-                result = requests.post(self.url, json=payload, headers=self.headers)
-                self.queue.pop(0)
+        while self.queue:
+            data = self.queue.pop()
+            coin, explorer_url, user, address, txs, internal = data
+            payload = self.build_message(user, address, coin, txs, internal)
 
-            logger.info('Notifier: REST sent')
-        except requests.exceptions.Timeout:
-            logger.warn('Notifier: REST timedout, will be repeated')
-        except requests.exceptions.RequestException as e:
-            logger.warn('Notifier: REST failed')
+            try:
+                url = self.url if internal else user['rest_url']
+                response = requests.post(url, json=payload, headers=self.headers)
+            except requests.exceptions.Timeout:
+                self.queue.append(data)
+                logger.warn('Notifier: REST timedout, will be repeated')
+            except requests.exceptions.RequestException as e:
+                self.queue.append(data)
+                logger.warn('Notifier: REST failed')
+        
+        logger.info('Notifier: REST sent')
 

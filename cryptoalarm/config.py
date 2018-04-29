@@ -7,7 +7,7 @@ DATABASE = 'dbname=cryptoalarm user=postgres host=127.0.0.1 password=secret'
 COINS = {
     # 'BTC': 'http://bitcoin:local321@147.229.9.86:8332',
     'LTC': 'http://bitcoin:local321@147.229.9.86:9332',
-    # 'DASH': 'http://dash:local321@147.229.9.86:9998',
+    'DASH': 'http://dash:local321@147.229.9.86:9998',
     # 'ZEC': 'http://bitcoin:local321@147.229.9.86:9997',
     # 'BCH': 'http://bitcoin:local321@147.229.14.167:9996',
     # 'ETH': 'http://localhost:8545',

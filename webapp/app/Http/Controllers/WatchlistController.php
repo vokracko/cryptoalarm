@@ -15,10 +15,10 @@ class WatchlistController extends Controller
     public function rules()
     {
         return [
-            'name'=>'required',
-            'address'=> 'required',
-            'type'=> 'required',
-            'coin'=> 'required',
+            'name' => 'required',
+            'address' => 'required',
+            'type' => 'required',
+            'coin' => 'required',
             'notify' => 'required',
             'email_template' => 'nullable',
         ];
