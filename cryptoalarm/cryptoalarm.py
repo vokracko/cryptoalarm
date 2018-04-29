@@ -23,13 +23,13 @@ class Cryptoalarm():
 
     def __init__(self):
         signal.signal(signal.SIGINT, self.shutdown)
-
-        for coin_name, rpc in cfg.COINS.items():
-            coin_inst = globals()[coin_name](rpc)
-            self.coins.append(coin_inst)
-
         self.database = Database(cfg.DATABASE)
         self.notifier = Notifier(self.database)
+
+        for coin_name, rpc in cfg.COINS.items():
+            coin_inst = globals()[coin_name](rpc, self.stop)
+            coin_inst.db_id = self.database.get_coin(coin_name)['id']
+            self.coins.append(coin_inst)
 
     def shutdown(self, signum, frame):
         logger.info('Shuting down')
@@ -60,7 +60,7 @@ class Cryptoalarm():
             self.database.set_last_block_number(coin, number)
             logger.info('%s: setting last_block_number to %s', coin, number)
 
-    def process_block(self, coin, number):
+    def process_block(self, database, coin, number):
         time_start = timer()
         coin.get_block(number)
         logger.info('%s: processing block: %s', coin, number)
@@ -73,29 +73,44 @@ class Cryptoalarm():
 
         time_total = timer() - time_start
         logger.debug('%s: processed %d transactions in %.4fs', coin, cnt, time_total)
+        database.set_block_number(coin, number, coin.get_block_hash())
 
         return number + 1, time_total
+
+    def last_processed_block(self, database, coin):
+        number = database.get_last_block_number(coin)
+
+        while True:
+            hash_saved = database.get_block_hash(coin, number)
+            hash_node = coin.get_block_hash(number)
+
+            if hash_saved == hash_node or hash_saved is None:
+                break
+
+            number -= 1
+
+        return number
 
     def worker(self, coin):
         database = Database(cfg.DATABASE)
 
         while not self.stop.is_set():
-            current_number = database.get_last_block_number(coin)
+            current_number = self.last_processed_block(database, coin) + 1
             last_number = coin.get_last_block_number()
             processing_time = 0
 
-            while current_number < last_number:
+            while current_number <= last_number:
                 if self.stop.is_set():
                     break
 
-                current_number, block_time = self.process_block(coin, current_number)
+                current_number, block_time = self.process_block(database, coin, current_number)
                 processing_time += block_time
-                database.set_last_block_number(coin, current_number)
 
             until_next_block = (coin.block_time - timedelta(seconds=processing_time)).total_seconds()
             self.stop.wait(timeout=until_next_block)
 
         logger.info('%s: terminating', coin)
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Cryptoalarm')

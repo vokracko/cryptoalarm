@@ -10,9 +10,25 @@ class Database():
         self.conn = psycopg2.connect(url)
         self.cursor = self.conn.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
 
+    def get_coin(self, name):
+        sql = '''
+            SELECT
+                id,
+                name,
+                explorer_url
+            FROM
+                coins
+            WHERE
+                name = %s
+        '''
+
+        self.cursor.execute(sql, (name,))
+        return self.cursor.fetchone()
+
     def get_coins(self):
         sql = '''
             SELECT
+                id,
                 name,
                 explorer_url
             FROM
@@ -46,6 +62,9 @@ class Database():
             JOIN 
                 coins c
             ON a.coin_id = c.id
+            JOIN 
+                watchlists w
+            ON w.address_id = a.id
         '''
         self.cursor.execute(sql)
         return self.cursor.fetchall()
@@ -73,16 +92,23 @@ class Database():
     def get_last_block_number(self, coin):
         sql = '''
             SELECT 
-                last_block 
+                number 
             FROM 
-                coins
+                blocks
             WHERE 
-                name = %s
+                id = (
+                    SELECT 
+                        MAX(id) 
+                    FROM 
+                        blocks 
+                    WHERE 
+                        coin_id = %s
+                )
         '''
-        self.cursor.execute(sql, (str(coin),))
+        self.cursor.execute(sql, (coin.db_id,))
         result = self.cursor.fetchone()
 
-        return result['last_block']
+        return result['number']
 
     def set_last_block_number(self, coin, number):
         sql = '''
@@ -91,8 +117,34 @@ class Database():
             SET 
                 last_block = %s  
             WHERE 
-                name = %s
+                id = %s
         '''
-        self.cursor.execute(sql, (number, str(coin),))
+        self.cursor.execute(sql, (number, coin.db_id,))
+        self.conn.commit()
+
+    def get_block_hash(self, coin, number):
+        sql = '''
+            SELECT 
+                hash 
+            FROM 
+                blocks
+            WHERE 
+                coin_id = %s AND number = %s
+        '''
+        self.cursor.execute(sql, (coin.db_id, number))
+        result = self.cursor.fetchone()
+
+        return result['hash'] if result else None
+
+    def set_block_number(self, coin, number, block_hash):
+        sql = '''
+            INSERT INTO blocks
+                (coin_id, number, hash)
+            VALUES
+                (%s, %s, %s)
+            ON CONFLICT (coin_id, number) DO UPDATE SET 
+                hash = EXCLUDED.hash
+        '''
+        self.cursor.execute(sql, (coin.db_id, number, block_hash))
         self.conn.commit()
         

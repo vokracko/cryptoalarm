@@ -53,7 +53,6 @@ class Notifier():
                     'out_users': [],
                     'inout_users': [],
                 }
-                # print(json.dumps(self.data, indent=4))
 
             ptr = self.data[address['coin']]['data'][address['hash']]
 
