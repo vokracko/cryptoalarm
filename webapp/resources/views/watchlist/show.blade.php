@@ -5,11 +5,13 @@
     @include('messages.all')
     <h1>Watchlist detail: {{ $item->name }} </h1>
 
-    <a href="{{ action('WatchlistController@edit', $item->id) }}" class="btn btn-primary">Edit</a><br>
-    {{ Form::open(['method' => 'DELETE', 'action' => ['WatchlistController@destroy', $item->id]]) }}
-        <button class="btn btn-danger" type="submit">Delete</button>
-    {{ Form::close() }}
-    
+    <div style="float:right; width:130px;">
+        <a href="{{ action('WatchlistController@edit', $item->id) }}" class="btn btn-primary" style="float:left;">Edit</a>
+        {{ Form::open(['method' => 'DELETE', 'action' => ['WatchlistController@destroy', $item->id]]) }}
+            <button class="btn btn-danger" type="submit">Delete</button>
+        {{ Form::close() }}
+    </div>
+        
     <br>
     Coin: {{ $item->address->coin->name }}<br>
     Address: <a href="{{ $item->address->coin->explorer_url . $item->address->hash }}">{{ $item->address->hash }}</a><br>
