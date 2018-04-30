@@ -84,7 +84,8 @@ class BTC(Coin):
         return self.rpc('getblockhash', number)
 
     def get_last_block_number(self):
-        return self.rpc('getblockcount')
+        number = self.rpc('getblockcount'),
+        return number, self.get_block_hash(number)
 
     def get_block(self, number):
         block_hash = self.get_block_hash(number)
@@ -147,7 +148,8 @@ class ETH(Coin):
         return self.get_block(number)['hash']
 
     def get_last_block_number(self):
-        return int(self.rpc('eth_getBlockByNumber', 'latest', False)['number'], 16)
+        block = self.rpc('eth_getBlockByNumber', 'latest', False)
+        return int(block['number'], 16), block['hash']
 
     def get_block(self, number):
         self.block = self.rpc('eth_getBlockByNumber', hex(number), False)

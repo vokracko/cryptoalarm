@@ -56,8 +56,8 @@ class Cryptoalarm():
 
     def set_last_blocks(self):
         for coin in self.coins:
-            number = coin.get_last_block_number()
-            self.database.set_last_block_number(coin, number)
+            number, block_hash = coin.get_last_block_number()
+            self.database.set_block_number(coin, number, block_hash)
             logger.info('%s: setting last_block_number to %s', coin, number)
 
     def process_block(self, database, coin, number):
@@ -96,7 +96,7 @@ class Cryptoalarm():
 
         while not self.stop.is_set():
             current_number = self.last_processed_block(database, coin) + 1
-            last_number = coin.get_last_block_number()
+            last_number, last_hash = coin.get_last_block_number()
             processing_time = 0
 
             while current_number <= last_number:

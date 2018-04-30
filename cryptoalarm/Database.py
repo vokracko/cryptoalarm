@@ -109,19 +109,7 @@ class Database():
         self.cursor.execute(sql, (coin.db_id,))
         result = self.cursor.fetchone()
 
-        return result['number']
-
-    def set_last_block_number(self, coin, number):
-        sql = '''
-            UPDATE 
-                coins
-            SET 
-                last_block = %s  
-            WHERE 
-                id = %s
-        '''
-        self.cursor.execute(sql, (number, coin.db_id,))
-        self.conn.commit()
+        return result['number'] if result else 0
 
     def get_block_hash(self, coin, number):
         sql = '''
