@@ -17,6 +17,9 @@ class Address extends Model
 
     public static function getOrCreate($coin, $hash)
     {
+        if($coin == 'ETH')
+            $hash = strtolower($hash);
+
         return self::firstOrCreate([
             'coin_id' => Coin::findOrFail($coin)->id,
             'hash' => $hash,
