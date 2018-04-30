@@ -31,6 +31,6 @@ class WatchlistsTableSeeder extends Seeder
                 'email_template' => NULL,
             ]);
         }
-        DB::query("select setval('watchlists_id_seq', (SELECT MAX(id) FROM watchlists) + 1);");
+        DB::select("select setval('watchlists_id_seq', (SELECT MAX(id) FROM watchlists) + 1);");
     }
 }

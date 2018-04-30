@@ -26,6 +26,6 @@ class UsersTableSeeder extends Seeder
                 'password' => bcrypt($row[1]),
             ]);
         }
-        DB::query("select setval('users_id_seq', (SELECT MAX(id) FROM users) + 1);");
+        DB::select("select setval('users_id_seq', (SELECT MAX(id) FROM users) + 1);");
     }
 }
