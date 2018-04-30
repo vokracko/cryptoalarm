@@ -1,22 +1,21 @@
 <?php
 
 use Illuminate\Database\Seeder;
+use Flynsarmy\CsvSeeder\CsvSeeder;
 
-class AddressesTableSeeder extends Seeder
+class AddressesTableSeeder extends CsvSeeder
 {
-    /**
-     * Run the database seeds.
-     *
-     * @return void
-     */
+    public function __construct()
+    {
+        $this->table = 'addresses';
+        $this->csv_delimiter = ';';
+        $this->filename = base_path().'/database/seeds/csvs/addresses.csv';
+    }
+
     public function run()
     {
-        $db = \Config::get('database.connections.pgsql.database');
-        $host = \Config::get('database.connections.pgsql.hostname');
-        $user = \Config::get('database.connections.pgsql.username');
-        $pass = \Config::get('database.connections.pgsql.password');
-
-        exec(sprintf('psql postgresql://%s:%s@%s/%s -c "\COPY addresses (id, hash, coin_id) FROM \'addresses.csv\' delimiter \';\' csv;"', $user, $pass, $host, $db));
-        DB::query("select setval('addresses_id_seq', (SELECT MAX(id) FROM addresses) + 1);");
+        DB::disableQueryLog();
+        parent::run();
+        DB::select("select setval('addresses_id_seq', (SELECT MAX(id) FROM addresses) + 1);");        
     }
 }

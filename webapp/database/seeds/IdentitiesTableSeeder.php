@@ -1,21 +1,21 @@
 <?php
 
 use Illuminate\Database\Seeder;
-class IdentitiesTableSeeder extends Seeder
+use Flynsarmy\CsvSeeder\CsvSeeder;
+
+class IdentitiesTableSeeder extends CsvSeeder
 {
-    /**
-     * Run the database seeds.
-     *
-     * @return void
-     */
+    public function __construct()
+    {
+        $this->table = 'identities';
+        $this->csv_delimiter = ';';
+        $this->filename = base_path().'/database/seeds/csvs/identities.csv';
+    }
+
     public function run()
     {
-        $db = \Config::get('database.connections.pgsql.database');
-        $host = \Config::get('database.connections.pgsql.hostname');
-        $user = \Config::get('database.connections.pgsql.username');
-        $pass = \Config::get('database.connections.pgsql.password');
-
-        exec(sprintf('psql postgresql://%s:%s@%s/%s -c "\COPY identities (url, label, source, address_id) FROM \'identities.csv\' delimiter \';\' csv;"', $user, $pass, $host, $db));
-        DB::query("select setval('identities_id_seq', (SELECT MAX(id) FROM identities) + 1);");
+        DB::disableQueryLog();
+        parent::run();
+        DB::select("select setval('identities_id_seq', (SELECT MAX(id) FROM identities) + 1);");
     }
 }
