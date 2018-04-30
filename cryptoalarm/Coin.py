@@ -140,6 +140,7 @@ class ZEC(BTC):
 
 class ETH(Coin):
     block_time = timedelta(seconds=15)
+    ERC20_TRANSFER_PREFIX = '0xa9059cbb'
 
     def get_block_hash(self, number = None):
         if number is None:
@@ -166,4 +167,11 @@ class ETH(Coin):
 
     def get_transaction_io(self, tx_hash):
         tx = self.get_transaction(tx_hash)
-        return {'in': set([tx['from']]), 'out': set([tx['to']]), 'hash': tx_hash}
+        result = {'in': set([tx['from']]), 'out': set([tx['to']]), 'hash': tx_hash}
+        input_data = tx['input']
+
+        if input_data.startswith(self.ERC20_TRANSFER_PREFIX):
+            recipient = '0x' + input_data[34:74]
+            result['out'].add(recipient)
+
+        return result
