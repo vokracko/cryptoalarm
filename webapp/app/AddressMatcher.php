@@ -4,14 +4,13 @@ namespace Cryptoalarm;
 
 class AddressMatcher {
     public $coins = [
-        'btc' => [ // https://en.bitcoin.it/wiki/Address
-            '[1|3][[:alnum:]]{25,34}', // P2PKH/P@PS
-            'bc1[[:alnum:]]{23,32}', // Bech32
-        ],
-        'eth' => ['0x[[:alnum:]]{40}'],
-        'ltc' => ['[LM3][a-km-zA-HJ-NP-Z1-9]{26,33}'], // https://stackoverflow.com/questions/23570080/how-to-determine-if-litecoin-address-is-valid
-        'xmr' => ['4[0-9AB][[:alnum:]]{93}'], // https://getmonero.org/resources/moneropedia/address.html
+        'btc' => ['(bc1|[13])[a-km-zA-HJ-NP-Z1-9]{26,39}'],
+        'bch' => ['[13][a-km-zA-HJ-NP-Z1-9]{26,33}'],
+        'ltc' => ['[LM3][a-km-zA-HJ-NP-Z1-9]{26,33}'],
+        'dash' => ['X[1-9A-HJ-NP-Za-km-z]{25,34}'],
         'zec' => ['[t|z]{34}'],
+        'eth' => ['0x[a-fA-F0-9]{40}'],
+        'xmr' => ['4[0-9AB][[:alnum:]]{93}'],
     ];
 
     public function identify_address($address) {
