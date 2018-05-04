@@ -21,6 +21,7 @@ class Watchlist extends Model
     ];
 
     protected $enumNotifyTypes = [
+        'none' => 'None',
         'rest' => 'Rest',
         'email' => 'Email',
         'both' => 'Both',
