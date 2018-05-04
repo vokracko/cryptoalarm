@@ -16,22 +16,24 @@ class Notifier():
     queue = queue.Queue()
     data = {}
     database = None
-    rest = None
-    mailer = None
+    senders = []
     last_run = None
 
     def __init__(self, database):
         self.database = database
-        self.rest = Rest(database.get_setting('notification_url'))
-        self.mailer = Mailer(database.get_setting('email_subject'), 
-                            database.get_setting('email_from'), 
-                            database.get_setting('email_template'))
         self.load()
         self.last_run = datetime.now()
 
+        mailer = Mailer(database.get_setting('email_subject'), 
+                            database.get_setting('email_from'), 
+                            database.get_setting('email_template'))
+        self.rest = Rest(database.get_setting('notification_url'))
+        self.senders.append(mailer)
+        self.senders.append(self.rest)
+
     def test_connection(self):
-        self.rest.test_connection()
-        self.mailer.test_connection()
+        for sender in self.senders:
+            sender.test_connection()
 
     def load(self):
         logger.info('Notifier: load')
@@ -109,20 +111,20 @@ class Notifier():
                 address_data['in'] = []
                 address_data['out'] = []
         
-        self.mailer.send()
-        self.rest.send()
+        for sender in self.senders:
+            sender.send()
 
     def add(self, coin, explorer_url, user, address, txs):
         logger.debug('%s: add notification for user %s about %s', coin, user, txs)
+        self.rest.add(coin, explorer_url, user, address, txs, internal=True)
 
-        if user['notify'] in ['email', 'both']:
-            self.mailer.add(coin, explorer_url, user, address, txs)
-
-        if user['notify'] in ['rest', 'both']:
-            self.rest.add(coin, explorer_url, user, address, txs)
+        for sender in self.senders:
+            if user['notify'] in sender.types:
+                sender.add(coin, explorer_url, user, address, txs)
 
 
 class Sender():
+    types = []
 
     def add(self, coin, explorer_url, user, address, txs):
         self.queue.append((coin, explorer_url, user, address, list(txs)))
@@ -139,6 +141,7 @@ class Mailer(Sender):
     template = None
     email = None
     subject = None
+    types = ['mail', 'both']
 
     def __init__(self, subject, email, template):
         self.queue = []
@@ -147,14 +150,11 @@ class Mailer(Sender):
         self.template = template
     
     def test_connection(self):
-        logger.error("mail connect")
         self.connect()
         self.server.quit()
-        logger.error("mail disconnect")
 
     def connect(self):
         self.server = smtplib.SMTP(cfg.SMTP['server'], cfg.SMTP['port'])
-        self.server.set_debuglevel(True)
         self.server.starttls()
         self.server.login(cfg.SMTP['username'], cfg.SMTP['password'])
 
@@ -206,6 +206,7 @@ class Mailer(Sender):
 class Rest(Sender):
     url = None
     headers = {'content-type': 'application/json'}
+    types = ['rest', 'both']
 
     def __init__(self, url):
         self.queue = []
@@ -214,11 +215,11 @@ class Rest(Sender):
     def test_connection(self):
         requests.post(self.url, json={}, headers=self.headers)
 
-    def add(self, coin, explorer_url, user, address, txs):
-        self.queue.append((coin, explorer_url, user, address, list(txs), True))
+    def add(self, coin, explorer_url, user, address, txs, internal = False):
+        if not internal and not user['rest_url']:
+            return
 
-        if user['rest_url']:
-            self.queue.append((coin, explorer_url, user, address, list(txs), False))
+        self.queue.append((coin, explorer_url, user, address, list(txs), internal))
 
     def build_message(self, user, address, coin, txs, internal):
         if internal:
