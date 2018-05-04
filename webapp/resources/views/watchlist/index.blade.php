@@ -15,6 +15,7 @@
                 <th>Coin</th>
                 <th>Address</th>
                 <th>Type</th>
+                <th>Notifications</th>
                 <th colspan="3">Action</th>
             </tr>
         </thead>
@@ -26,6 +27,7 @@
                     <td>{{ $item->address->coin->name }}</td>
                     <td><a href="{{ $item->address->coin->explorer_url . $item->address->hash }}">{{ $item->address->hash }}</a></td>
                     <td>{{ $item->type }}</td>
+                    <td>{{ $item->notify }}</td>
                     <td><a href="{{ action('WatchlistController@show', $item->id) }}" class="btn btn-primary">Detail</a></td>
                     <td><a href="{{ action('WatchlistController@edit', $item->id) }}" class="btn btn-primary">Edit</a></td>
                     <td>
