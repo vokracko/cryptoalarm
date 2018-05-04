@@ -56,6 +56,7 @@ class WatchlistController extends Controller
         $item = new Watchlist();
         $data = $this->validate($request, $this->rules());
         $item->saveItem($data);
+        $this->restCheck($request, $data);
 
         return redirect('/watchlist')->with('success', 'Item created!');
     }
@@ -74,8 +75,8 @@ class WatchlistController extends Controller
         $item = new Watchlist();
         $data = $this->validate($request, $this->rules());
         $data['id'] = $id;
-        error_log($data['type']);
         $item->updateItem($data);
+        $this->restCheck($request, $data);
 
         return redirect('/watchlist')->with('success', 'Item has been updated!');
     }
@@ -98,6 +99,17 @@ class WatchlistController extends Controller
             'status' => !empty($possible_coins),
             'coins' => $possible_coins,
         ]);
+    }
 
+    public function restCheck(Request $request, $data)
+    {
+        error_log($data['notify']);
+        error_log($request->user()->rest_url);
+        error_log(in_array($data['notify'], ['both', 'rest']));
+        error_log(empty($request->user()->rest_url));
+        if(in_array($data['notify'], ['both', 'rest']) && empty($request->user()->rest_url)) {
+            $request->session()->flash('warning', 'Notifications include REST but REST URL is not set. Fill it in your profile.');
+            error_log("podminka");
+        }
     }
 }

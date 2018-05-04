@@ -3,7 +3,7 @@
 @section('content')
 <div class="container">
     @include('messages.all')
-    <h1>Watchlist</h1>
+    <h1>Watchlists</h1>
     <a href="{{ action('WatchlistController@create') }}" class="btn btn-success">Create new</a>
     <br><br>
     {{ $list->links() }}

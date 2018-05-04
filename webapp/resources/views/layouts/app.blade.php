@@ -37,7 +37,7 @@
                     <!-- Left Side Of Navbar -->
                     <ul class="nav navbar-nav">
                         <li><a href="{{url('/dashboard')}}" class="navbar">Dashboard</a></li>
-                        <li><a href="{{url('/watchlist')}}" class="navbar">Watchlist</a></li>
+                        <li><a href="{{url('/watchlist')}}" class="navbar">Watchlists</a></li>
                     </ul>
 
                     <!-- Right Side Of Navbar -->

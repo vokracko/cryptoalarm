@@ -26,3 +26,11 @@
         </div>
     </div>
 @endif
+
+@if(session('warning'))
+    <div class="row">
+        <div class="alert alert-warning">
+            {{ session('warning') }}
+        </div>
+    </div>
+@endif
