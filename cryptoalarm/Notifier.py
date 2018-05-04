@@ -17,12 +17,13 @@ class Notifier():
     data = {}
     database = None
     senders = []
-    last_run = None
+    last_notify = None
+    last_load = None
 
     def __init__(self, database):
         self.database = database
         self.load()
-        self.last_run = datetime.now()
+        self.last_notify = datetime.now()
 
         mailer = Mailer(database.get_setting('email_subject'), 
                             database.get_setting('email_from'), 
@@ -60,6 +61,8 @@ class Notifier():
             for type in ['in', 'out', 'inout']:
                 ptr[type + '_users'] = self.database.get_address_users(address['address_id'], type)
 
+        self.last_load = datetime.now()
+
     def add_transaction(self, coin, tx):
         self.queue.put((coin, tx))
 
@@ -68,18 +71,16 @@ class Notifier():
             try:
                 coin, tx = self.queue.get(timeout=cfg.NOTIFY_INTERVAL.total_seconds())
             except queue.Empty:
-                self.reload()
+                self.notify()
                 continue
 
             self.process_transaction(coin, tx)
             self.queue.task_done()
-            if self.last_run + cfg.NOTIFY_INTERVAL < datetime.now():
-                self.reload()
+            if self.last_notify + cfg.NOTIFY_INTERVAL < datetime.now():
+                self.notify()
 
-    def reload(self):
-        self.notify()
-        self.load()
-        self.last_run = datetime.now()
+            if self.last_load + cfg.RELOAD_INTERVAL < datetime.now():
+                self.load()
 
     def process_transaction(self, coin, tx):
         coin_name = str(coin)
@@ -113,6 +114,8 @@ class Notifier():
         
         for sender in self.senders:
             sender.send()
+
+        self.last_notify = datetime.now()
 
     def add(self, coin, explorer_url, user, address, txs):
         logger.debug('%s: add notification for user %s about %s', coin, user, txs)
