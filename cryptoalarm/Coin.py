@@ -16,6 +16,7 @@ class Coin():
     def __init__(self, url, stop):
         self.url = url
         self.stop = stop
+        self.transactions = {}
 
     def get_block_time(self):
         if not self.block_time:
@@ -84,7 +85,7 @@ class BTC(Coin):
         return self.rpc('getblockhash', number)
 
     def get_last_block_number(self):
-        number = self.rpc('getblockcount'),
+        number = self.rpc('getblockcount')
         return number, self.get_block_hash(number)
 
     def get_block(self, number):
@@ -93,13 +94,20 @@ class BTC(Coin):
         return self.block
 
     def get_block_transactions(self, number = None):
+        self.transactions = {}
         if number is not None:
             self.get_block(number)
 
         return self.block['tx']
 
     def get_transaction(self, tx_hash):
-        return self.rpc('getrawtransaction', tx_hash, 1)
+        if tx_hash in self.transactions:
+            tx = self.transactions[tx_hash]
+        else:
+            tx = self.rpc('getrawtransaction', tx_hash, 1)
+            self.transactions[tx_hash] = tx
+
+        return tx
 
     def get_transaction_io(self, tx_hash):
         tx = self.get_transaction(tx_hash)
@@ -132,11 +140,6 @@ class LTC(BTC):
 class ZEC(BTC):
     block_time = timedelta(seconds=150)
 
-    def process_inputs(self, input):
-        if 'coinbase' in input:
-            return []
-        return [input.get('address')]
-
 
 class ETH(Coin):
     block_time = timedelta(seconds=15)
@@ -157,13 +160,20 @@ class ETH(Coin):
         return self.block
 
     def get_block_transactions(self, number = None):
+        self.transactions = {}
         if number is not None:
             self.get_block(number)
 
         return self.block['transactions']
 
     def get_transaction(self, tx_hash):
-        return self.rpc('eth_getTransactionByHash', tx_hash)
+        if tx_hash in self.transactions:
+            tx = self.transactions[tx_hash]
+        else:
+            tx = self.rpc('eth_getTransactionByHash', tx_hash)
+            self.transactions[tx_hash] = tx
+
+        return tx
 
     def get_transaction_io(self, tx_hash):
         tx = self.get_transaction(tx_hash)
