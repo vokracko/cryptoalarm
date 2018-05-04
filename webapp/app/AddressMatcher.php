@@ -8,7 +8,7 @@ class AddressMatcher {
         'bch' => ['[13][a-km-zA-HJ-NP-Z1-9]{26,33}'],
         'ltc' => ['[LM3][a-km-zA-HJ-NP-Z1-9]{26,33}'],
         'dash' => ['X[1-9A-HJ-NP-Za-km-z]{25,34}'],
-        'zec' => ['[t|z]{34}'],
+        'zec' => ['t[a-zA-Z0-9]{34}'],
         'eth' => ['0x[a-fA-F0-9]{40}'],
         'xmr' => ['4[0-9AB][[:alnum:]]{93}'],
     ];
