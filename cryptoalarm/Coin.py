@@ -94,22 +94,19 @@ class BTC(Coin):
         return self.block
 
     def get_block_transactions(self, number = None):
-        self.transactions = {}
         if number is not None:
             self.get_block(number)
 
         return self.block['tx']
 
     def get_transaction(self, tx_hash):
-        if tx_hash in self.transactions:
-            tx = self.transactions[tx_hash]
-        else:
-            tx = self.rpc('getrawtransaction', tx_hash, 1)
-            self.transactions[tx_hash] = tx
-
-        return tx
-
+        if tx_hash not in self.transactions:
+            self.transactions[tx_hash] = self.rpc('getrawtransaction', tx_hash, 1)
+        
+        return self.transactions[tx_hash]
+        
     def get_transaction_io(self, tx_hash):
+        self.transactions = {}
         tx = self.get_transaction(tx_hash)
         vout = reduce(lambda acc, item: item['scriptPubKey'].get('addresses', []) + acc, tx['vout'], [])
         vin = reduce(lambda acc, item: self.process_inputs(item) + acc, tx['vin'], [])
@@ -123,7 +120,6 @@ class BTC(Coin):
         tx = self.get_transaction(txid)
 
         return tx['vout'][index]['scriptPubKey'].get('addresses', [])
-
 
 class BCH(BTC):
     block_time = timedelta(minutes=10)
@@ -160,20 +156,13 @@ class ETH(Coin):
         return self.block
 
     def get_block_transactions(self, number = None):
-        self.transactions = {}
         if number is not None:
             self.get_block(number)
 
         return self.block['transactions']
 
     def get_transaction(self, tx_hash):
-        if tx_hash in self.transactions:
-            tx = self.transactions[tx_hash]
-        else:
-            tx = self.rpc('eth_getTransactionByHash', tx_hash)
-            self.transactions[tx_hash] = tx
-
-        return tx
+        return self.rpc('eth_getTransactionByHash', tx_hash)
 
     def get_transaction_io(self, tx_hash):
         tx = self.get_transaction(tx_hash)
