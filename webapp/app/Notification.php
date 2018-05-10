@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Notification extends Model
 {
-    public $fillable = ['watchlist_id', 'tx_hash'];
+    public $fillable = ['watchlist_id', 'block_id', 'tx_hash'];
 
     public function watchlist() 
     {

@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class NotificationsCascadeDelete extends Migration
+class NotificationBlockReference extends Migration
 {
     /**
      * Run the migrations.
@@ -14,8 +14,8 @@ class NotificationsCascadeDelete extends Migration
     public function up()
     {
         Schema::table('notifications', function (Blueprint $table) {
-            $table->dropForeign('notifications_watchlist_id_foreign');
-            $table->foreign('watchlist_id')->references('id')->on('watchlists')->onDelete('cascade');
+            $table->integer('block_id');
+            $table->foreign('block_id')->references('id')->on('blocks')->onDelete('cascade');
         });
     }
 
@@ -27,8 +27,8 @@ class NotificationsCascadeDelete extends Migration
     public function down()
     {
         Schema::table('notifications', function (Blueprint $table) {
-            $table->dropForeign('notifications_watchlist_id_foreign');
-            $table->foreign('watchlist_id')->references('id')->on('watchlists');
+            $table->dropForeign('notifications_block_id_foreign');
+            $table->dropColumn('block_id');
         });
     }
 }

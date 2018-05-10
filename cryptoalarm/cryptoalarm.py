@@ -63,17 +63,17 @@ class Cryptoalarm():
     def process_block(self, database, coin, number):
         time_start = timer()
         coin.get_block(number)
+        block_id = database.set_block_number(coin, number, coin.get_block_hash())
         logger.info('%s: processing block: %s', coin, number)
         cnt = 0
 
         for tx_hash in coin.get_block_transactions():
             tx = coin.get_transaction_io(tx_hash)
-            self.notifier.add_transaction(coin, tx)
+            self.notifier.add_transaction(coin, number, block_id, tx)
             cnt += 1
 
         time_total = timer() - time_start
         logger.debug('%s: processed %d transactions in %.4fs', coin, cnt, time_total)
-        database.set_block_number(coin, number, coin.get_block_hash())
 
         return number + 1, time_total
 
@@ -86,7 +86,8 @@ class Cryptoalarm():
 
             if hash_saved == hash_node or hash_saved is None:
                 break
-
+            
+            database.delete_block(coin, number)
             number -= 1
 
         return number

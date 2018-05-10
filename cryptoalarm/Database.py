@@ -131,9 +131,18 @@ class Database():
                 (coin_id, number, hash)
             VALUES
                 (%s, %s, %s)
-            ON CONFLICT (coin_id, number) DO UPDATE SET 
-                hash = EXCLUDED.hash
+            RETURNING id
         '''
         self.cursor.execute(sql, (coin.db_id, number, block_hash))
+        self.conn.commit()
+        return self.cursor.fetchone()['id']
+
+    def delete_block(self, coin, number):
+        sql = '''
+            DELETE FROM blocks
+            WHERE 
+                coin_id = %s AND number = %s
+        '''
+        self.cursor.execute(sql, (coin.db_id, number))
         self.conn.commit()
         

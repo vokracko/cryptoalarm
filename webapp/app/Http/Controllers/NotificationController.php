@@ -11,16 +11,14 @@ class NotificationController extends Controller
     public function createMany(Request $request)
     {
         $data = json_decode($request->getContent(), true);
-        error_log($data['watchlist_id']);
-        $watchlist = Watchlist::findOrFail($data['watchlist_id']);
-
+        
         foreach($data['transactions'] as $t) {
+            // error_log(var_export($t, True));
             $item = Notification::create([
-                'watchlist_id' => $watchlist->id,
-                'tx_hash' => $t,
+                'watchlist_id' => $data['watchlist_id'],
+                'block_id' => $t[1],
+                'tx_hash' => $t[2],
             ]);
-
-            $item->save();
         }
 
         return response()->json([], 200);

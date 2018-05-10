@@ -63,18 +63,18 @@ class Notifier():
 
         self.last_load = datetime.now()
 
-    def add_transaction(self, coin, tx):
-        self.queue.put((coin, tx))
+    def add_transaction(self, coin, block_number, block_id, tx):
+        self.queue.put((coin, block_number, block_id, tx))
 
     def worker(self, stop):
         while not stop.is_set() or not self.queue.empty(): 
             try:
-                coin, tx = self.queue.get(timeout=cfg.NOTIFY_INTERVAL.total_seconds())
+                coin, block_number, block_id, tx = self.queue.get(timeout=cfg.NOTIFY_INTERVAL.total_seconds())
             except queue.Empty:
                 self.notify()
                 continue
 
-            self.process_transaction(coin, tx)
+            self.process_transaction(coin, block_number, block_id, tx)
             self.queue.task_done()
             if self.last_notify + cfg.NOTIFY_INTERVAL < datetime.now():
                 self.notify()
@@ -82,13 +82,13 @@ class Notifier():
             if self.last_load + cfg.RELOAD_INTERVAL < datetime.now():
                 self.load()
 
-    def process_transaction(self, coin, tx):
+    def process_transaction(self, coin, block_number, block_id, tx):
         coin_name = str(coin)
         for type in ['in', 'out']:
             intersect = set(self.data[coin_name]['data'].keys()) & tx[type]
 
             for address in intersect:
-                self.data[coin_name]['data'][address][type].add(tx['hash'])
+                self.data[coin_name]['data'][address][type].add((block_number, block_id, tx['hash']))
 
     def notify(self):
         logger.info('Notifier: notify')
@@ -109,8 +109,8 @@ class Notifier():
                     for user in address_data['in_users']: 
                         self.add(coin_name, explorer_url, user, address, address_data['in'])
 
-                address_data['in'] = []
-                address_data['out'] = []
+                address_data['in'] = set()
+                address_data['out'] = set()
         
         for sender in self.senders:
             sender.send()
@@ -167,9 +167,9 @@ class Mailer(Sender):
             template = user['email_template']
 
         txs_links = []
-        for tx in txs:
+        for block_number, block_id, tx in txs:
             tx_url = explorer_url + tx
-            txs_links.append('<a href="{}">{}</a>'.format(tx_url, tx))
+            txs_links.append('#{} <a href="{}">{}</a>'.format(block_number, tx_url, tx))
 
         address_url = explorer_url + address
         address_str = '<a href="{}">{}</a>'.format(address_url, address)
@@ -225,17 +225,18 @@ class Rest(Sender):
         self.queue.append((coin, explorer_url, user, address, list(txs), internal))
 
     def build_message(self, user, address, coin, txs, internal):
+        txs = [list(tx) for tx in txs]
         if internal:
             return {
-                'watchlist_id': user['watchlist_id'],
-                'transactions': txs,
+                "watchlist_id": user['watchlist_id'],
+                "transactions": txs,
             }
         else:
             return {
-                'address': address,
-                'coin': coin,
-                'watchlist': user['watchlist_name'],
-                'transactions': txs,
+                "address": address,
+                "coin": coin,
+                "watchlist": user['watchlist_name'],
+                "transactions": txs,
             }
 
     def send(self):
