@@ -2,7 +2,7 @@ import requests
 import json
 import time
 from functools import reduce
-from datetime import timedelta
+from datetime import datetime, timedelta
 import config as cfg
 
 logger = cfg.logger
@@ -30,6 +30,9 @@ class Coin():
     def get_last_block_number(self):
         raise NotImplementedError()
 
+    def get_block_creation_time(self, number=None):
+        raise NotImplementedError
+
     def get_block(self, number):
         raise NotImplementedError()
 
@@ -52,7 +55,7 @@ class Coin():
             'id': 0,
         }
 
-        while not self.stop.is_set():
+        while True:
             try:
                 response = requests.post(self.url, json=payload, headers=headers, timeout=(cfg.TIMEOUT['connect'], cfg.TIMEOUT['read']))
                 data = response.json()
@@ -87,6 +90,15 @@ class BTC(Coin):
     def get_last_block_number(self):
         number = self.rpc('getblockcount')
         return number, self.get_block_hash(number)
+
+    def get_block_creation_time(self, number=None):
+        if number is None and self.block is None:
+            number, _  = self.get_last_block_number()
+
+        if number is not None:
+            self.get_block(number)
+
+        return datetime.fromtimestamp(self.block['time'])
 
     def get_block(self, number):
         block_hash = self.get_block_hash(number)
@@ -148,8 +160,14 @@ class ETH(Coin):
         return self.get_block(number)['hash']
 
     def get_last_block_number(self):
-        block = self.rpc('eth_getBlockByNumber', 'latest', False)
-        return int(block['number'], 16), block['hash']
+        self.block = self.rpc('eth_getBlockByNumber', 'latest', False)
+        return int(self.block['number'], 16), self.block['hash']
+
+    def get_block_creation_time(self, number=None):
+        if number is not None:
+            self.get_block(number)
+
+        return datetime.fromtimestamp(int(self.block['timestamp'], 16))
 
     def get_block(self, number):
         self.block = self.rpc('eth_getBlockByNumber', hex(number), False)

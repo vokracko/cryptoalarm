@@ -6,7 +6,7 @@ import threading
 import argparse
 import signal
 from timeit import default_timer as timer
-from datetime import timedelta
+from datetime import datetime, timedelta
 from Coin import BTC, BCH, DASH, ZEC, LTC, ETH
 from Database import Database
 from Notifier import Notifier
@@ -75,7 +75,7 @@ class Cryptoalarm():
         time_total = timer() - time_start
         logger.debug('%s: processed %d transactions in %.4fs', coin, cnt, time_total)
 
-        return number + 1, time_total
+        return number + 1
 
     def last_processed_block(self, database, coin):
         number = database.get_last_block_number(coin)
@@ -97,17 +97,19 @@ class Cryptoalarm():
 
         while not self.stop.is_set():
             current_number = self.last_processed_block(database, coin) + 1
-            last_number, last_hash = coin.get_last_block_number()
-            processing_time = 0
+            last_number, _ = coin.get_last_block_number()
 
             while current_number <= last_number:
                 if self.stop.is_set():
                     break
 
-                current_number, block_time = self.process_block(database, coin, current_number)
-                processing_time += block_time
+                current_number = self.process_block(database, coin, current_number)
 
-            until_next_block = (coin.block_time - timedelta(seconds=processing_time)).total_seconds()
+            until_next_block = (coin.get_block_creation_time() + coin.get_block_time() - datetime.now()).total_seconds()
+
+            if until_next_block < 0: # should be already generated
+                until_next_block = (coin.get_block_time() * 0.05).total_seconds() # wait only brief time (5% of block time) before trying again
+
             self.stop.wait(timeout=until_next_block)
 
         logger.info('%s: terminating', coin)
