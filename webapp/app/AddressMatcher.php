@@ -4,10 +4,10 @@ namespace Cryptoalarm;
 
 class AddressMatcher {
     public $coins = [
-        'btc' => ['(bc1|[13])[a-km-zA-HJ-NP-Z1-9]{26,39}'],
-        'bch' => ['[13][a-km-zA-HJ-NP-Z1-9]{26,33}'],
-        'ltc' => ['[LM3][a-km-zA-HJ-NP-Z1-9]{26,33}'],
-        'dash' => ['X[1-9A-HJ-NP-Za-km-z]{25,34}'],
+        'btc' => ['([13][a-km-zA-HJ-NP-Z1-9]{25,33}|bc1([A-Za-z0-9]{39}|[A-Za-z0-9]{59}))'],
+        'bch' => ['[13][a-km-zA-HJ-NP-Z1-9]{25,33}'],
+        'ltc' => ['[LM3][a-km-zA-HJ-NP-Z1-9]{25,33}'],
+        'dash' => ['X[1-9A-HJ-NP-Za-km-z]{25,33}'],
         'zec' => ['t[a-zA-Z0-9]{34}'],
         'eth' => ['0x[a-fA-F0-9]{40}'],
         'xmr' => ['4[0-9AB][[:alnum:]]{93}'],
