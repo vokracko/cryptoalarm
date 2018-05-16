@@ -42,7 +42,7 @@ Pokud bude webapp spuštěna jinak je nutné změnit url v db: settings(key=noti
 
 Monitor
 ====
-Nastavit připojení k db a rpc api v ```cryptoalarm/config.py```
+Nakonfigurovat připojení k databázi, rpc api jednotlivých kryptoměn a SMTP sesrveru v ```cryptoalarm/config.py```
 ```
 cryptoalarm/$ pip install -r requirements.txt
 cryptoalarm/$ ./cryptoalarm.py --init
