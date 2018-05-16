@@ -79,6 +79,9 @@ class Notifier():
             if self.last_load + cfg.RELOAD_INTERVAL < datetime.now():
                 self.load()
 
+        # send out all remaining notifications
+        self.notify()
+
     def process_transaction(self, coin, block_number, block_id, tx):
         coin_name = str(coin)
         for type in ['in', 'out']:
