@@ -49,17 +49,14 @@ class Notifier():
         for address in self.database.get_addresses():
             if not address['hash'] in self.data[address['coin']]['data']:
                 self.data[address['coin']]['data'][address['hash']] = {
-                    'in': set(),
-                    'out': set(),
-                    'in_users': [],
-                    'out_users': [],
-                    'inout_users': [],
+                    'txs': {'in': set(), 'out': set()},
+                    'users': {'in': [], 'out': [], 'inout': []},
                 }
 
             ptr = self.data[address['coin']]['data'][address['hash']]
 
             for type in ['in', 'out', 'inout']:
-                ptr[type + '_users'] = self.database.get_address_users(address['address_id'], type)
+                ptr['users'][type] = self.database.get_address_users(address['address_id'], type)
 
         self.last_load = datetime.now()
 
@@ -88,7 +85,7 @@ class Notifier():
             intersect = set(self.data[coin_name]['data'].keys()) & tx[type]
 
             for address in intersect:
-                self.data[coin_name]['data'][address][type].add((block_number, block_id, tx['hash']))
+                self.data[coin_name]['data'][address]['txs'][type].add((block_number, block_id, tx['hash']))
 
     def notify(self):
         logger.info('Notifier: notify')
@@ -97,17 +94,17 @@ class Notifier():
             for address, address_data in self.data[coin_name]['data'].items():
                 explorer_url = self.data[coin_name]['explorer_url']
                 # notify users with INOUT about IN and OUT tranasctions
-                if address_data['out'] or address_data['in']:
-                    for user in address_data['inout_users']: 
-                        self.add(coin_name, explorer_url, user, address, address_data['out'] | address_data['in'])
+                if address_data['txs']['out'] or address_data['txs']['in']:
+                    for user in address_data['users']['inout']: 
+                        self.add(coin_name, explorer_url, user, address, address_data['txs']['out'] | address_data['txs']['in'])
 
-                if address_data['out']:
-                    for user in address_data['out_users']: 
-                        self.add(coin_name, explorer_url, user, address, address_data['out'])
+                if address_data['txs']['out']:
+                    for user in address_data['users']['out']: 
+                        self.add(coin_name, explorer_url, user, address, address_data['txs']['out'])
 
-                if address_data['in']:
-                    for user in address_data['in_users']: 
-                        self.add(coin_name, explorer_url, user, address, address_data['in'])
+                if address_data['txs']['in']:
+                    for user in address_data['users']['in']: 
+                        self.add(coin_name, explorer_url, user, address, address_data['txs']['in'])
 
                 address_data['in'] = set()
                 address_data['out'] = set()
