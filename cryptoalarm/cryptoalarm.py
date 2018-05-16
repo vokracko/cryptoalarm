@@ -58,7 +58,7 @@ class Cryptoalarm():
         for coin in self.coins:
             number, block_hash = coin.get_last_block_number()
             self.database.set_block_number(coin, number, block_hash)
-            logger.info('%s: setting last_block_number to %s', coin, number)
+            logger.info('%s: setting %s as last processed block', coin, number)
 
     def process_block(self, database, coin, number):
         time_start = timer()
