@@ -103,7 +103,10 @@ class Cryptoalarm():
                 if self.stop.is_set():
                     break
 
-                current_number = self.process_block(database, coin, current_number)
+                try:
+                    current_number = self.process_block(database, coin, current_number)
+                except InterruptedError:
+                    break
 
             until_next_block = (coin.get_block_creation_time() + coin.get_block_time() - datetime.now()).total_seconds()
 

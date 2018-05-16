@@ -67,6 +67,10 @@ class Coin():
                 logger.warn("%s: request failed, will be repeated after %ss", self.__class__.__name__, retry_interval)
                 time.sleep(retry_interval)
                 retry_interval = min(retry_interval * 2, cfg.RETRY_INTERVAL_MAX)
+
+                if self.stop.is_set():
+                    raise InterruptedError
+
                 continue
 
             return data['result']
