@@ -224,7 +224,7 @@ class Rest(Sender):
 
         self.queue.append((coin, explorer_url, user, address, list(txs), internal))
 
-    def build_message(self, user, address, coin, txs, internal):
+    def build_message(self, coin, user, address, txs, internal):
         txs = [list(tx) for tx in txs]
         if internal:
             return {
@@ -243,7 +243,7 @@ class Rest(Sender):
         while self.queue:
             data = self.queue.pop()
             coin, explorer_url, user, address, txs, internal = data
-            payload = self.build_message(user, address, coin, txs, internal)
+            payload = self.build_message(coin, user, address, txs, internal)
 
             try:
                 url = self.url if internal else user['rest_url']
