@@ -13,5 +13,4 @@ use Illuminate\Http\Request;
 |
 */
 
-Route::post('/notifications', 'NotificationController@createMany');
 Route::get('/identify', 'WatchlistController@identify');

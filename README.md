@@ -38,7 +38,6 @@ s několika uživateli:
 * dave@cryptoalarm.tld:dave
 
 Každý z uživatelů má definovanou alespoň jednu adresu, kterou systém monitoruje.
-Pokud bude webapp spuštěna jinak je nutné změnit url v db: settings(key=notification_url).
 
 Monitor
 ====

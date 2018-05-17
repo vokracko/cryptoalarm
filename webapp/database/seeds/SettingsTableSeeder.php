@@ -15,7 +15,6 @@ class SettingsTableSeeder extends Seeder
             ['email_template', 'Watched address {name} {address} for {coin} was found in those transactions:' . PHP_EOL . '{txs}'],
             ['email_subject', 'Cryptoalarm notification: {name}'],
             ['email_from', 'notifications@cryptoalarm.tld'],
-            ['notification_url', 'http://localhost:8000/api/notifications'],
             ['bitcointalk_last_id', '2048136'],
         ];
 

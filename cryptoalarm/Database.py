@@ -1,6 +1,6 @@
 import psycopg2
 import psycopg2.extras
-
+from datetime import datetime
 
 class Database():
     conn = None
@@ -134,7 +134,7 @@ class Database():
             RETURNING id
         '''
         self.cursor.execute(sql, (coin.db_id, number, block_hash))
-        self.conn.commit()
+        self.commit()
         return self.cursor.fetchone()['id']
 
     def delete_block(self, coin, number):
@@ -144,5 +144,14 @@ class Database():
                 coin_id = %s AND number = %s
         '''
         self.cursor.execute(sql, (coin.db_id, number))
+        self.commit()
+
+    def insert_notifications(self, watchlist_id, txs):
+        sql = 'INSERT INTO notifications (watchlist_id, block_id, tx_hash, created_at) VALUES (%s, %s, %s, %s)'
+        self.cursor.executemany(sql, [(watchlist_id, tx[1], tx[2], datetime.now()) for tx in txs])
+    
+    def commit(self):
         self.conn.commit()
+
+        
         
