@@ -126,7 +126,7 @@ class BTC(Coin):
         tx = self.get_transaction(tx_hash)
         vout = reduce(lambda acc, item: item['scriptPubKey'].get('addresses', []) + acc, tx['vout'], [])
         vin = reduce(lambda acc, item: self.process_inputs(item) + acc, tx['vin'], [])
-        return {'in': set(vin), 'out': set(vout), 'hash': tx_hash}
+        return {'in': set(vin), 'out': set(vout)}
 
     def process_inputs(self, input):
         if 'coinbase' in input:
@@ -188,7 +188,7 @@ class ETH(Coin):
 
     def get_transaction_io(self, tx_hash):
         tx = self.get_transaction(tx_hash)
-        result = {'in': set([tx['from']]), 'out': set([tx['to']]), 'hash': tx_hash}
+        result = {'in': set([tx['from']]), 'out': set([tx['to']])}
         input_data = tx['input']
 
         if input_data.startswith(self.ERC20_TRANSFER_PREFIX):

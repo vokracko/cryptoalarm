@@ -68,8 +68,8 @@ class Cryptoalarm():
         cnt = 0
 
         for tx_hash in coin.get_block_transactions():
-            tx = coin.get_transaction_io(tx_hash)
-            self.notifier.add_transaction(coin, number, block_id, tx)
+            addresses = coin.get_transaction_io(tx_hash)
+            self.notifier.add_transaction(coin, number, block_id, tx_hash, addresses)
             cnt += 1
 
         time_total = timer() - time_start

@@ -58,18 +58,18 @@ class Notifier():
 
         self.last_load = datetime.now()
 
-    def add_transaction(self, coin, block_number, block_id, tx):
-        self.queue.put((coin, block_number, block_id, tx))
+    def add_transaction(self, coin, block_number, block_id, hash, addresses):
+        self.queue.put((coin, block_number, block_id, hash, addresses))
 
     def worker(self, stop):
         while not stop.is_set() or not self.queue.empty(): 
             try:
-                coin, block_number, block_id, tx = self.queue.get(timeout=cfg.NOTIFY_INTERVAL.total_seconds())
+                coin, block_number, block_id, hash, addresses = self.queue.get(timeout=cfg.NOTIFY_INTERVAL.total_seconds())
             except queue.Empty:
                 self.notify()
                 continue
 
-            self.process_transaction(coin, block_number, block_id, tx)
+            self.process_transaction(coin, block_number, block_id, hash, addresses)
             self.queue.task_done()
             if self.last_notify + cfg.NOTIFY_INTERVAL < datetime.now():
                 self.notify()
@@ -80,13 +80,13 @@ class Notifier():
         # send out all remaining notifications
         self.notify()
 
-    def process_transaction(self, coin, block_number, block_id, tx):
+    def process_transaction(self, coin, block_number, block_id, hash, addresses):
         coin_name = str(coin)
         for type in ['in', 'out']:
-            intersect = set(self.data[coin_name]['data'].keys()) & tx[type]
+            intersect = set(self.data[coin_name]['data'].keys()) & addresses[type]
 
             for address in intersect:
-                self.data[coin_name]['data'][address]['txs'][type].add((block_number, block_id, tx['hash']))
+                self.data[coin_name]['data'][address]['txs'][type].add((block_number, block_id, hash))
 
     def notify(self):
         logger.info('Notifier: notify')
