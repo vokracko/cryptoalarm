@@ -79,7 +79,7 @@ class Notifier():
             if self.last_load + timedelta(seconds=self.config['reload_interval']) < datetime.now():
                 self.load()
 
-        # send out all remaining notifications
+        logger.info('sending remaining notifications')
         self.notify()
 
     def process_transaction(self, coin, block_number, block_id, hash, addresses):
@@ -197,10 +197,9 @@ class Mailer(Sender):
             self.connect()
 
             while self.queue:
-                coin, explorer_url, user, address, txs = self.queue[0]
+                coin, explorer_url, user, address, txs = self.queue.pop()
                 message = self.build_message(coin, explorer_url, user, address, txs)
                 self.server.sendmail(self.email, [user['email']], message)
-                self.queue.pop(0)
 
             self.server.quit()
             logger.info('MAIL sent')
@@ -231,6 +230,7 @@ class Rest(Sender):
         }
 
     def send(self):
+        new_queue = []
         while self.queue:
             data = self.queue.pop()
             coin, explorer_url, user, address, txs = data
@@ -239,11 +239,12 @@ class Rest(Sender):
             try:
                 response = requests.post(user['rest_url'], json=payload)
             except requests.exceptions.Timeout:
-                self.queue.append(data)
+                new_queue.append(data)
                 logger.warn('REST timedout, will be repeated')
             except requests.exceptions.RequestException as e:
                 self.queue.append(data)
                 logger.warn('REST failed')
         
+        self.queue = new_queue
         logger.info('REST sent')
 
