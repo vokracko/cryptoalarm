@@ -1,34 +1,30 @@
 #!/usr/bin/env python3
 
-import time
-import sys
 import threading
-import argparse
-import signal
+import logging
 from timeit import default_timer as timer
 from datetime import datetime, timedelta
-from Coin import BTC, BCH, DASH, ZEC, LTC, ETH
-from Database import Database
-from Notifier import Notifier
-from config import logger
-import config as cfg
+from .coin import BTC, BCH, DASH, ZEC, LTC, ETH
+from .database import Database
+from .notifier import Notifier
 
+logger = logging.getLogger(__name__)
 
-class Cryptoalarm():
+class Monitor():
     stop = threading.Event()
     coins = []
     threads = []
     database = None
     notifier = None
 
-    def __init__(self):
-        signal.signal(signal.SIGINT, self.shutdown)
-        self.database = Database(cfg.DATABASE)
-        self.notifier = Notifier(self.database)
+    def __init__(self, config):
+        self.config = config
+        self.database = Database(config['db'])
+        self.notifier = Notifier(config, self.database)
 
-        for coin_name, rpc in cfg.COINS.items():
-            coin_inst = globals()[coin_name](rpc, self.stop)
-            coin_inst.db_id = self.database.get_coin(coin_name)['id']
+        for coin in config['coins']:
+            coin_inst = coin(config, self.stop)
+            coin_inst.db_id = self.database.get_coin(coin_inst.__class__.__name__)['id']
             self.coins.append(coin_inst)
 
     def shutdown(self, signum, frame):
@@ -41,7 +37,8 @@ class Cryptoalarm():
         self.notifier.test_connection()
 
         for coin in self.coins:
-            coin.get_last_block_number()
+            if not coin.test_connection():
+                raise ConnectionError('{}: node unreachable'.format(coin.__class__.__name__))
 
     def start(self):
         for coin in self.coins:
@@ -93,7 +90,7 @@ class Cryptoalarm():
         return number
 
     def worker(self, coin):
-        database = Database(cfg.DATABASE)
+        database = Database(self.config['db'])
 
         while not self.stop.is_set():
             current_number = self.last_processed_block(database, coin) + 1
@@ -116,17 +113,3 @@ class Cryptoalarm():
             self.stop.wait(timeout=until_next_block)
 
         logger.info('%s: terminating', coin)
-
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Cryptoalarm')
-    parser.add_argument('--init', action='store_true', help='Set current blocks as last ones processed')
-    args = parser.parse_args()
-
-    ca = Cryptoalarm()
-    ca.test_connection()
-
-    if args.init:
-        ca.set_last_blocks()
-    else:
-        ca.start()

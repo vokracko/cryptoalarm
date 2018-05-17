@@ -1,22 +1,33 @@
 import requests
 import json
 import time
+import logging
 from functools import reduce
 from datetime import datetime, timedelta
-import config as cfg
 
-logger = cfg.logger
-
+logger = logging.getLogger(__name__)
 
 class Coin():
     url = None
     block_time = None
     block = None
+    reraise = False
 
-    def __init__(self, url, stop):
-        self.url = url
+    def __init__(self, config, stop):
+        self.config = config
+        self.url = config['urls'][self.__class__.__name__]
         self.stop = stop
         self.transactions = {}
+
+    def test_connection(self):
+        self.reraise = True
+        try:
+            self.get_block_hash(1)
+        except:
+            return False
+        self.reraise = False
+
+        return True
 
     def get_block_time(self):
         if not self.block_time:
@@ -46,7 +57,7 @@ class Coin():
         raise NotImplementedError()
 
     def rpc(self, method, *args, **kwargs):
-        retry_interval = cfg.RETRY_INTERVAL_MIN
+        retry_interval = self.config['retry_interval_min']
         headers = {'content-type': 'application/json'}
         payload = {
             'jsonrpc': '2.0',
@@ -57,19 +68,22 @@ class Coin():
 
         while True:
             try:
-                response = requests.post(self.url, json=payload, headers=headers, timeout=(cfg.TIMEOUT['connect'], cfg.TIMEOUT['read']))
+                response = requests.post(self.url, json=payload, headers=headers, timeout=(self.config['timeout']['connect'], self.config['timeout']['read']))
                 data = response.json()
 
                 if 'error' in data and data['error']:
                     logger.error(data)
                     raise requests.exceptions.RequestException
-            except requests.exceptions.RequestException:
-                logger.warn("%s: request failed, will be repeated after %ss", self.__class__.__name__, retry_interval)
-                time.sleep(retry_interval)
-                retry_interval = min(retry_interval * 2, cfg.RETRY_INTERVAL_MAX)
+            except Exception as e:
+                if self.reraise:
+                    raise e
 
                 if self.stop.is_set():
                     raise InterruptedError
+
+                logger.warn("%s: request failed, will be repeated after %ss", self.__class__.__name__, retry_interval)
+                time.sleep(retry_interval)
+                retry_interval = min(retry_interval * 2, self.config['retry_interval_max'])
 
                 continue
 

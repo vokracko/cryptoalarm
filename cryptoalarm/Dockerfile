@@ -1,8 +1,7 @@
 FROM python:3
-ADD Coin.py /
-ADD Database.py /
-ADD Notifier.py /
-ADD cryptoalarm.py /
+ADD run.py /
+ADD config.json /
 ADD requirements.txt /
+ADD cryptoalarm /cryptoalarm
 RUN pip install -r requirements.txt
-CMD [ "python", "./cryptoalarm.py" ]
+CMD [ "python", "./run.py" ]

@@ -5,12 +5,11 @@ import queue
 from datetime import datetime, timedelta
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from config import logger
-import config as cfg
 from email.utils import formatdate
 import time
 import re
 
+logger = logging.getLogger(__name__)
 
 class Notifier():
     queue = queue.Queue()
@@ -20,14 +19,17 @@ class Notifier():
     last_notify = None
     last_load = None
 
-    def __init__(self, database):
+    def __init__(self, config, database):
         self.database = database
+        self.config = config
         self.load()
         self.last_notify = datetime.now()
 
-        mailer = Mailer(database.get_setting('email_subject'), 
-                            database.get_setting('email_from'), 
-                            database.get_setting('email_template'))
+        mailer = Mailer(config,
+            database.get_setting('email_subject'), 
+            database.get_setting('email_from'), 
+            database.get_setting('email_template')
+        )
         self.senders = [mailer, Rest()]
 
     def test_connection(self):
@@ -35,7 +37,7 @@ class Notifier():
             sender.test_connection()
 
     def load(self):
-        logger.info('Notifier: load')
+        logger.info('load')
         self.data = {}
 
         for coin in self.database.get_coins():
@@ -64,17 +66,17 @@ class Notifier():
     def worker(self, stop):
         while not stop.is_set() or not self.queue.empty(): 
             try:
-                coin, block_number, block_id, hash, addresses = self.queue.get(timeout=cfg.NOTIFY_INTERVAL.total_seconds())
+                coin, block_number, block_id, hash, addresses = self.queue.get(timeout=self.config['notify_interval'])
             except queue.Empty:
                 self.notify()
                 continue
 
             self.process_transaction(coin, block_number, block_id, hash, addresses)
             self.queue.task_done()
-            if self.last_notify + cfg.NOTIFY_INTERVAL < datetime.now():
+            if self.last_notify + timedelta(seconds=self.config['notify_interval']) < datetime.now():
                 self.notify()
 
-            if self.last_load + cfg.RELOAD_INTERVAL < datetime.now():
+            if self.last_load + timedelta(seconds=self.config['reload_interval']) < datetime.now():
                 self.load()
 
         # send out all remaining notifications
@@ -89,7 +91,7 @@ class Notifier():
                 self.data[coin_name]['data'][address]['txs'][type].add((block_number, block_id, hash))
 
     def notify(self):
-        logger.info('Notifier: notify')
+        logger.info('notify')
 
         for coin_name in self.data:
             for address, address_data in self.data[coin_name]['data'].items():
@@ -145,8 +147,9 @@ class Mailer(Sender):
     subject = None
     types = ['mail', 'both']
 
-    def __init__(self, subject, email, template):
+    def __init__(self, config, subject, email, template):
         self.queue = []
+        self.config = config
         self.email = email
         self.subject = subject
         self.template = template
@@ -156,9 +159,9 @@ class Mailer(Sender):
         self.server.quit()
 
     def connect(self):
-        self.server = smtplib.SMTP(cfg.SMTP['server'], cfg.SMTP['port'])
+        self.server = smtplib.SMTP(self.config['smtp']['server'], self.config['smtp']['port'])
         self.server.starttls()
-        self.server.login(cfg.SMTP['username'], cfg.SMTP['password'])
+        self.server.login(self.config['smtp']['username'], self.config['smtp']['password'])
 
     def build_body(self, coin, explorer_url, user, address, txs):
         template = self.template
@@ -200,13 +203,12 @@ class Mailer(Sender):
                 self.queue.pop(0)
 
             self.server.quit()
-            logger.info('Notifier: MAIL sent')
+            logger.info('MAIL sent')
         except Exception as e:
-            logger.warn('Notifier: MAIL failed')
+            logger.warn('MAIL failed')
 
 
 class Rest(Sender):
-    url = None
     types = ['rest', 'both']
 
     def __init__(self):
@@ -238,10 +240,10 @@ class Rest(Sender):
                 response = requests.post(user['rest_url'], json=payload)
             except requests.exceptions.Timeout:
                 self.queue.append(data)
-                logger.warn('Notifier: REST timedout, will be repeated')
+                logger.warn('REST timedout, will be repeated')
             except requests.exceptions.RequestException as e:
                 self.queue.append(data)
-                logger.warn('Notifier: REST failed')
+                logger.warn('REST failed')
         
-        logger.info('Notifier: REST sent')
+        logger.info('REST sent')
 
