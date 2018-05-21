@@ -12,7 +12,7 @@ class SettingsTableSeeder extends Seeder
     public function run()
     {
         $rows = [
-            ['email_template', 'Watched address {name} {address} for {coin} was found in those transactions:' . PHP_EOL . '{txs}'],
+            ['email_template', 'Watched address {name} {address} for {coin} was found in those transactions:<br> {txs}'],
             ['email_subject', 'Cryptoalarm notification: {name}'],
             ['email_from', 'notifications@cryptoalarm.tld'],
             ['bitcointalk_last_id', '2048136'],

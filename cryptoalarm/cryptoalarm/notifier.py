@@ -37,7 +37,7 @@ class Notifier():
             sender.test_connection()
 
     def load(self):
-        logger.info('load')
+        logger.debug('load')
         self.data = {}
 
         for coin in self.database.get_coins():
@@ -81,7 +81,7 @@ class Notifier():
 
     def process_remaining(self):
         logger.info('sending remaining notifications')
-        
+
         while not self.queue.empty(): 
             coin, block_number, block_id, hash, addresses = self.queue.get()
             self.process_transaction(coin, block_number, block_id, hash, addresses)
@@ -177,7 +177,7 @@ class Mailer(Sender):
         txs_links = []
         for block_number, block_id, tx in txs:
             tx_url = explorer_url + tx
-            txs_links.append('#{} <a href="{}">{}</a>'.format(block_number, tx_url, tx))
+            txs_links.append('#{} <a href="{}">{}</a><br>'.format(block_number, tx_url, tx))
 
         address_url = explorer_url + address
         address_str = '<a href="{}">{}</a>'.format(address_url, address)
