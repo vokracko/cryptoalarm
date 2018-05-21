@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
-
+"""
+This module specifies class Monitored designated for processing of cryptocurrencies blocks
+"""
 import threading
 import logging
 from timeit import default_timer as timer
@@ -11,6 +13,9 @@ from .notifier import Notifier
 logger = logging.getLogger(__name__)
 
 class Monitor():
+    """
+    Monitor controls the processing of cryptocurrencies bloks
+    """
     stop = threading.Event()
     coins = []
     threads = []
@@ -18,6 +23,11 @@ class Monitor():
     notifier = None
 
     def __init__(self, config):
+        """
+        Construct new Monitor object
+
+        :param config: configuration dict
+        """
         self.config = config
         self.database = Database(config['db'])
         self.notifier = Notifier(config, self.database)
@@ -28,6 +38,9 @@ class Monitor():
             self.coins.append(coin_inst)
 
     def shutdown(self, signum, frame):
+        """
+        Terminate threads of each component
+        """
         logger.info('Shuting down')
         self.stop.set()
         for thread in self.threads:
@@ -36,6 +49,9 @@ class Monitor():
         self.notifier.process_remaining()
     
     def test_connection(self):
+        """
+        Test connectivity of all components
+        """
         self.notifier.test_connection()
 
         for coin in self.coins:
@@ -43,6 +59,9 @@ class Monitor():
                 raise ConnectionError('{}: node unreachable'.format(coin.__class__.__name__))
 
     def start(self):
+        """
+        Start thread for every coin and notifier
+        """
         for coin in self.coins:
             logger.info('%s: starting monitor', coin)
             thread = threading.Thread(target=self.worker, args=(coin,))
@@ -54,15 +73,26 @@ class Monitor():
         thread.start()
 
     def set_last_blocks(self):
+        """
+        Set the current block of each coin as the last processed
+        """
         for coin in self.coins:
             number, block_hash = coin.get_last_block_number()
-            self.database.set_block_number(coin, number, block_hash)
+            self.database.insert_block(coin, number, block_hash)
             logger.info('%s: setting %s as last processed block', coin, number)
 
     def process_block(self, database, coin, number):
+        """
+        Process transaction of <coin> in a block of number <number>
+
+        :param database: Database object
+        :param coin: Coin object
+        :param number: block number
+        :return: number of the next block
+        """
         time_start = timer()
         coin.get_block(number)
-        block_id = database.set_block_number(coin, number, coin.get_block_hash())
+        block_id = database.insert_block(coin, number, coin.get_block_hash())
         logger.info('%s: processing block: %s', coin, number)
         cnt = 0
 
@@ -77,6 +107,13 @@ class Monitor():
         return number + 1
 
     def last_processed_block(self, database, coin):
+        """
+        Get the last block procesesd of <coin>
+
+        :param database: Database object
+        :param coin: Coin object
+        :return: number of last processed block
+        """
         number = database.get_last_block_number(coin)
 
         while True:
@@ -92,6 +129,11 @@ class Monitor():
         return number
 
     def worker(self, coin):
+        """
+        Process new blocks of cryptocurrency <coin> until stop event is set.
+
+        :param coin: a class inherited from Coin
+        """
         database = Database(self.config['db'])
 
         while not self.stop.is_set():

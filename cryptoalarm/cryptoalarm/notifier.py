@@ -1,3 +1,7 @@
+"""
+This module speficies class Notifier for transaction processing based on specified watchlists.
+"""
+
 import logging
 import smtplib
 import requests
@@ -12,6 +16,9 @@ import re
 logger = logging.getLogger(__name__)
 
 class Notifier():
+    """
+    Notifier handles transaction processing based on specified watchlists
+    """
     queue = queue.Queue()
     data = {}
     database = None
@@ -20,23 +27,35 @@ class Notifier():
     last_load = None
 
     def __init__(self, config, database):
+        """
+        Construct new Notifier objects
+
+        :param config: configuration dict
+        :param database: Database object
+        """
         self.database = database
         self.config = config
         self.load()
         self.last_notify = datetime.now()
 
         mailer = Mailer(config,
-            database.get_setting('email_subject'), 
-            database.get_setting('email_from'), 
-            database.get_setting('email_template')
+            database.get_value('email_subject'), 
+            database.get_value('email_from'), 
+            database.get_value('email_template')
         )
         self.senders = [mailer, Rest()]
 
     def test_connection(self):
+        """
+        Test connection of each notification sender
+        """
         for sender in self.senders:
             sender.test_connection()
 
     def load(self):
+        """
+        Load information about watched addresses and its users
+        """
         logger.debug('load')
         self.data = {}
 
@@ -61,9 +80,23 @@ class Notifier():
         self.last_load = datetime.now()
 
     def add_transaction(self, coin, block_number, block_id, hash, addresses):
+        """
+        Insert transaction in processing queue
+
+        :param coin: Coin object
+        :param block_number: number of block that includes given transaction
+        :param block_id: id of block record in database
+        :param hash: transaction hash
+        :param addresses: dict of input and output addresses of transaction
+        """
         self.queue.put((coin, block_number, block_id, hash, addresses))
 
     def worker(self, stop):
+        """
+        Indefinetly process transactions in queue
+
+        :param stop: threading.Event to signalize shutdown
+        """
         while not stop.is_set() or not self.queue.empty(): 
             try:
                 coin, block_number, block_id, hash, addresses = self.queue.get(timeout=self.config['notify_interval'])
@@ -80,6 +113,9 @@ class Notifier():
                 self.load()
 
     def process_remaining(self):
+        """
+        Process transaction inserted in queue after shutdown was signalized
+        """
         logger.info('sending remaining notifications')
 
         while not self.queue.empty(): 
@@ -89,6 +125,15 @@ class Notifier():
         self.notify()
 
     def process_transaction(self, coin, block_number, block_id, hash, addresses):
+        """
+        Save transaction that involve addresses specified in watchlist
+
+        :param coin: Coin object
+        :param block_number: number of block that includes given transaction
+        :param block_id: id of block record in database
+        :param hash: transaction hash
+        :param addresses: dict of input and output addresses of transaction
+        """
         coin_name = str(coin)
         for type in ['in', 'out']:
             intersect = set(self.data[coin_name]['data'].keys()) & addresses[type]
@@ -97,6 +142,9 @@ class Notifier():
                 self.data[coin_name]['data'][address]['txs'][type].add((block_number, block_id, hash))
 
     def notify(self):
+        """
+        Notify users about transactions involving monitored addresses
+        """
         logger.info('notify')
 
         for coin_name in self.data:
@@ -125,6 +173,15 @@ class Notifier():
         self.last_notify = datetime.now()
 
     def add(self, coin, explorer_url, user, address, txs):
+        """
+        Submit <address>'s transactions to notify queue of all senders
+
+        :param coin: Coin object
+        :param explorer_url: string of url of blockchain explorer
+        :param user: dict with user information
+        :param address: address hash
+        :param txs: list of transaction address was involved in
+        """
         logger.debug('%s: add notification for user %s about %s', coin, user, txs)
         self.database.insert_notifications(user['watchlist_id'], txs)
 
@@ -134,19 +191,40 @@ class Notifier():
 
 
 class Sender():
+    """
+    Sender defines the interface for each type of notification sender
+    """
     types = []
 
     def add(self, coin, explorer_url, user, address, txs):
+        """
+        Submit <address>'s transactions to notify queue
+
+        :param coin: Coin object
+        :param explorer_url: string of url of blockchain explorer
+        :param user: dict with user information
+        :param address: address hash
+        :param txs: list of transaction address was involved in
+        """
         self.queue.append((coin, explorer_url, user, address, list(txs)))
 
     def send(self):
+        """
+        Send notifications
+        """
         raise NotImplementedError()
     
     def test_connection(self):
+        """
+        Test connectivity
+        """
         pass
 
 
 class Mailer(Sender):
+    """
+    Mailer encapsulates the generation of email messages from notification
+    """
     server = None
     template = None
     email = None
@@ -154,6 +232,14 @@ class Mailer(Sender):
     types = ['mail', 'both']
 
     def __init__(self, config, subject, email, template):
+        """
+        Construct new Mailer object
+
+        :param confog: configuration dict
+        :param subject: string
+        :param email: source email
+        :param template: default email template
+        """
         self.queue = []
         self.config = config
         self.email = email
@@ -161,15 +247,31 @@ class Mailer(Sender):
         self.template = template
     
     def test_connection(self):
+        """
+        Test connection of SMTP server
+        """
         self.connect()
         self.server.quit()
 
     def connect(self):
+        """
+        Connet to SMTP server
+        """
         self.server = smtplib.SMTP(self.config['smtp']['server'], self.config['smtp']['port'])
         self.server.starttls()
         self.server.login(self.config['smtp']['username'], self.config['smtp']['password'])
 
     def build_body(self, coin, explorer_url, user, address, txs):
+        """
+        Build notification body
+
+        :param coin: Coin object
+        :param explorer_url: string of url of blockchain explorer
+        :param user: dict with user information
+        :param address: address hash
+        :param txs: list of transactions
+        :return: notification dict
+        """
         template = self.template
         if user['email_template']:
             template = user['email_template']
@@ -185,6 +287,16 @@ class Mailer(Sender):
         return template.format(address=address_str, coin=coin, name=user['watchlist_name'], txs='\n'.join(txs_links))
 
     def build_message(self, coin, explorer_url, user, address, txs):
+        """
+        Build email notification
+
+        :param coin: Coin object
+        :param explorer_url: string of url of blockchain explorer
+        :param user: dict with user information
+        :param address: address hash
+        :param txs: list of transactions
+        :return: notification string
+        """
         body = self.build_body(coin, explorer_url, user, address, txs)
         part1 = MIMEText(re.sub('<[^<]+?>', '', body), 'plain')
         part2 = MIMEText('<html>'+body+'</html>', 'html')
@@ -199,6 +311,9 @@ class Mailer(Sender):
         return msg.as_string()
 
     def send(self):
+        """
+        Send notifications
+        """
         try:
             self.connect()
 
@@ -214,18 +329,42 @@ class Mailer(Sender):
 
 
 class Rest(Sender):
+    """
+    Rest encapsulates the generation of rest notifications
+    """
     types = ['rest', 'both']
 
     def __init__(self):
+        """
+        Construct new Rest object
+        """
         self.queue = []
     
     def add(self, coin, explorer_url, user, address, txs):
+        """
+        Submit <address>'s transactions to notify queue only if user specified rest url
+
+        :param coin: Coin object
+        :param explorer_url: string of url of blockchain explorer
+        :param user: dict with user information
+        :param address: address hash
+        :param txs: list of transaction address was involved in
+        """
         if not user['rest_url']:
             return
 
         super(Rest, self).add(coin, explorer_url, user, address, txs)
 
     def build_message(self, coin, user, address, txs):
+        """
+        Build dict for notification
+
+        :param coin: Coin object
+        :param user: dict with user information
+        :param address: address hash
+        :param txs: list of transactions
+        :return: notification dict
+        """
         txs = [list(tx) for tx in txs]
         
         return {
@@ -236,6 +375,9 @@ class Rest(Sender):
         }
 
     def send(self):
+        """
+        Send notifications
+        """
         new_queue = []
         while self.queue:
             data = self.queue.pop()

@@ -1,16 +1,34 @@
+"""
+This module specifies classes for database interactions
+"""
+
 import psycopg2
 import psycopg2.extras
 from datetime import datetime
 
 class Database():
+    """
+    Database handles interaction with postgres
+    """
     conn = None
     cursor = None
 
     def __init__(self, url):
+        """
+        Construct new Database object
+
+        :param url: connection string
+        """
         self.conn = psycopg2.connect(url)
         self.cursor = self.conn.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
 
     def get_coin(self, name):
+        """
+        Get dict of cryptocurrency <name>
+
+        :param name: cryptocurrency name
+        :return: dict
+        """
         sql = '''
             SELECT
                 id,
@@ -26,6 +44,11 @@ class Database():
         return self.cursor.fetchone()
 
     def get_coins(self):
+        """
+        Get list of all cryptocurrencies
+
+        :return: list of cryptocurrencies
+        """
         sql = '''
             SELECT
                 id,
@@ -38,7 +61,13 @@ class Database():
         self.cursor.execute(sql)
         return self.cursor.fetchall()
 
-    def get_setting(self, key):
+    def get_value(self, key):
+        """
+        Get value for <key>
+
+        :param key: settings name
+        :return: value
+        """
         sql = '''
             SELECT 
                 value
@@ -52,6 +81,11 @@ class Database():
         return self.cursor.fetchone()['value']
 
     def get_addresses(self):
+        """
+        Get all addresse
+
+        :return: list
+        """
         sql = '''
             SELECT 
                 a.id "address_id", 
@@ -70,6 +104,13 @@ class Database():
         return self.cursor.fetchall()
 
     def get_address_users(self, id, type):
+        """
+        Get users of address <id> with type <type>
+
+        :param id: address id
+        :param type: watchlist type
+        :return: list
+        """
         sql = '''
             SELECT 
                 w.type "type", 
@@ -91,6 +132,12 @@ class Database():
         return self.cursor.fetchall()
 
     def get_last_block_number(self, coin):
+        """
+        Get the number of last processed block of <coin>
+
+        :param coin: Coin object
+        :return: block number or 0
+        """
         sql = '''
             SELECT 
                 number 
@@ -112,6 +159,13 @@ class Database():
         return result['number'] if result else 0
 
     def get_block_hash(self, coin, number):
+        """
+        Get block hash of <number> in cryptocurrency <coin>
+
+        :param coin: Coin object
+        :param number: block number
+        :return: string or none
+        """
         sql = '''
             SELECT 
                 hash 
@@ -125,7 +179,15 @@ class Database():
 
         return result['hash'] if result else None
 
-    def set_block_number(self, coin, number, block_hash):
+    def insert_block(self, coin, number, block_hash):
+        """
+        Insert block of <coin>
+
+        :param coin: Coin object
+        :param number: block number
+        :param block_hash: block hash
+        :return: id of inserted record
+        """
         sql = '''
             INSERT INTO blocks
                 (coin_id, number, hash)
@@ -138,6 +200,12 @@ class Database():
         return self.cursor.fetchone()['id']
 
     def delete_block(self, coin, number):
+        """
+        Delete block <number> of <coin>
+        
+        :param coin: Coin object
+        :param number: block number
+        """
         sql = '''
             DELETE FROM blocks
             WHERE 
@@ -147,10 +215,19 @@ class Database():
         self.commit()
 
     def insert_notifications(self, watchlist_id, txs):
+        """
+        Create notification for every transaction in <txs> for watchlist <watchlist_id> 
+
+        :param watchlist_id: watchlist id
+        :param txs: list of transactions
+        """
         sql = 'INSERT INTO notifications (watchlist_id, block_id, tx_hash, created_at) VALUES (%s, %s, %s, %s)'
         self.cursor.executemany(sql, [(watchlist_id, tx[1], tx[2], datetime.now()) for tx in txs])
     
     def commit(self):
+        """
+        Commit transaction
+        """
         self.conn.commit()
 
         
