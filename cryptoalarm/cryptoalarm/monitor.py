@@ -32,6 +32,8 @@ class Monitor():
         self.stop.set()
         for thread in self.threads:
             thread.join()
+
+        self.notifier.process_remaining()
     
     def test_connection(self):
         self.notifier.test_connection()

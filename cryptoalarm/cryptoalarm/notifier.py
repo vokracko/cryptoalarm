@@ -79,7 +79,13 @@ class Notifier():
             if self.last_load + timedelta(seconds=self.config['reload_interval']) < datetime.now():
                 self.load()
 
+    def process_remaining(self):
         logger.info('sending remaining notifications')
+        
+        while not self.queue.empty(): 
+            coin, block_number, block_id, hash, addresses = self.queue.get()
+            self.process_transaction(coin, block_number, block_id, hash, addresses)
+        
         self.notify()
 
     def process_transaction(self, coin, block_number, block_id, hash, addresses):
