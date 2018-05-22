@@ -63,7 +63,7 @@ class Monitor():
         Start thread for every coin and notifier
         """
         for coin in self.coins:
-            logger.info('%s: starting monitor', coin)
+            logger.info('%s: monitoring started', coin)
             thread = threading.Thread(target=self.worker, args=(coin,))
             self.threads.append(thread)
             thread.start()
