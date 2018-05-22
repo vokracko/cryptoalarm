@@ -141,6 +141,9 @@ class Coin():
         }
 
         while True:
+            if self.stop.is_set():
+                    raise InterruptedError
+
             try:
                 response = requests.post(self.url, json=payload, headers=headers, timeout=(self.config['timeout']['connect'], self.config['timeout']['read']))
                 data = response.json()
@@ -151,9 +154,6 @@ class Coin():
             except Exception as e:
                 if self.reraise:
                     raise e
-
-                if self.stop.is_set():
-                    raise InterruptedError
 
                 logger.warn("%s: request failed, will be repeated after %ss", self.__class__.__name__, retry_interval)
                 time.sleep(retry_interval)
