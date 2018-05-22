@@ -161,7 +161,8 @@ class Coin():
 
                 continue
 
-            return data['result']
+            if 'result' in data and data['result']:
+                return data['result']
 
     def __str__(self):
         return self.__unicode__()
