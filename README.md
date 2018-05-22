@@ -59,7 +59,6 @@ webapp/$ php artisan command:bitcointalk /path/to/selenium-standalone-server.jar
 ```
 
 ## Docker
-=====
 ```
 # docker build -t cryptoalarm .
 # docker run -v docker run -v cryptoalarm cryptoalarm
