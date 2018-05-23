@@ -38,14 +38,14 @@ cryptoalarm/$ pip install -r requirements.txt
 webapp/$ php artisan serve
 ```
 
-Application is now running: [http://localhost:8000](http://localhost:8000) with default users:
+Application is now running on [http://localhost:8000](http://localhost:8000) with the following users:
 
 * alice@cryptoalarm.tld:alice
 * bob@cryptoalarm.tld:bob
 * carol@cryptoalarm.tld:carol
 * dave@cryptoalarm.tld:dave
 
-Each user has atleast one watchlist create.
+Each user has atleast one watchlist created.
 
 ```
 cryptoalarm/$ ./run.py --init # set last block as last processed 
